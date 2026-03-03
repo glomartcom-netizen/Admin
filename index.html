@@ -132,15 +132,34 @@ const abi = [
 ];
 
 async function connectWallet() {
-    if (window.ethereum) {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        document.getElementById("wallet").innerText = "Admin: " + await signer.getAddress();
-        contract = new ethers.Contract(contractAddress, abi, signer);
-        refreshStats();
+    if (!window.ethereum) {
+        alert("MetaMask not detected");
+        return;
     }
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    const addr = await signer.getAddress();
+
+    const ADMIN_ADDRESS = "0x53ba2d865be750d0e2d4d01bcb0a46ec1684c46b";
+
+    // 🔒 HARD ADMIN CHECK
+    if (addr.toLowerCase() !== ADMIN_ADDRESS.toLowerCase()) {
+        alert("Access Denied. This wallet is not authorized Admin.");
+        return;
+    }
+
+    // 🔒 Masked Display
+    document.getElementById("wallet").innerText =
+        "Admin: " + addr.substring(0,6) + "..." + addr.substring(addr.length - 4);
+
+    contract = new ethers.Contract(contractAddress, abi, signer);
+
+    refreshStats();
+    refreshMembers();
 }
+    }
 
 // ✅ ISSUE 2 FIX: SAFE VIEW LOGIC
 async function refreshStats() {
