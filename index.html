@@ -1,1 +1,220 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <title>DimeX Merged - 100% Precision Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+    <style>
+        body { background:#0a0e14; color:#e0e6ed; font-family:'Segoe UI', sans-serif; padding:25px; line-height: 1.5; }
+        h1, h2 { color:gold; border-left: 5px solid gold; padding-left: 15px; margin-bottom:15px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 20px; }
+        .box { background:#161b22; border:1px solid #30363d; padding:20px; border-radius:12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        input, select, textarea { width: 95%; padding:10px; margin:8px 0; border-radius:6px; background:#0d1117; color:white; border:1px solid #444; }
+        button { width: 100%; padding:12px; background:linear-gradient(45deg, gold, #b8860b); border:none; border-radius:8px; cursor:pointer; font-weight:bold; color:#000; transition: 0.3s; margin-top:5px; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,215,0,0.3); }
+        .stat-card { background:#0d1117; padding:12px; border-radius:8px; border: 1px solid #222; text-align: center; }
+        .stat-val { color:#00ff88; font-family: monospace; font-size: 1.2em; font-weight:bold; }
+        .danger { background: linear-gradient(45deg, #ff4444, #990000) !important; color: white !important; }
+        .scroll-box { height: 120px; overflow-y: auto; background:#000; padding:10px; border:1px solid #333; font-family: monospace; font-size: 11px; color: #00ff88; border-radius: 8px; }
+        hr { border: 0; border-top: 1px solid #333; margin: 15px 0; }
+    </style>
+</head>
+<body>
+
+<h1>DimeX Precision Console <span style="font-size: 14px; color: #888;">(Bug Fixed Version)</span></h1>
+<button onclick="connectWallet()" style="width:auto; padding:10px 30px;">Step 1: Connect Admin Wallet</button>
+<p id="wallet">Status: Please Connect MetaMask</p>
+
+<div class="grid">
+    <div class="box">
+        <h2>Live Monitoring</h2>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="stat-card">DMX Price:<br><span id="livePrice" class="stat-val">Loading...</span></div>
+            <div class="stat-card">Member Count:<br><span id="mCount" class="stat-val">0</span></div>
+            <div class="stat-card">Pending Claim:<br><span id="pClaim" class="stat-val">0</span></div>
+            <div class="stat-card">Total Restake:<br><span id="tRestake" class="stat-val">0</span></div>
+        </div>
+        <button onclick="refreshStats()" style="background:#222; color:white;">🔄 Update Live Data</button>
+    </div>
+
+    <div class="box">
+        <h2>Price Configuration</h2>
+        <label style="font-size: 12px;">Enter Price in USDT (e.g., 0.05)</label>
+        <input id="manualPriceInput" type="number" step="0.000001" placeholder="Enter USDT per 1 DMX">
+        <button onclick="updateManualPrice()">Update Manual Price</button>
+        <hr>
+        <p style="font-size:12px; color:#888;">Mode Toggle (Check your ABI name):</p>
+        <div style="display:flex; gap:10px;">
+            <button onclick="setPriceMode(true)" style="background:#238636; color:white;">Live Price ON</button>
+            <button onclick="setPriceMode(false)" style="background:#444; color:white;">Manual Price ON</button>
+        </div>
+    </div>
+
+    <div class="box">
+        <h2>Member Controls</h2>
+        <div id="memberList" class="scroll-box">Click Refresh to Load...</div>
+        <button onclick="refreshMembers()">Refresh Member List</button>
+        <hr>
+        <input id="targetUser" placeholder="User Address (0x...)">
+        <button onclick="addMember()">Add Member</button>
+        <div style="display:flex; gap:5px;">
+            <button onclick="resetCap()">Reset 4X Cap</button>
+            <button onclick="unlockLevel()">Unlock Level (30d)</button>
+        </div>
+    </div>
+
+    <div class="box">
+        <h2>Rewards & Tracking</h2>
+        <input id="rankUser" placeholder="User Address">
+        <input id="rankAmt" placeholder="DMX Amount">
+        <input id="rankName" placeholder="Rank/Award Name">
+        <button onclick="giveRankReward()">Send Rank Reward</button>
+        <hr>
+        <input id="trackUsdt" placeholder="Daily USDT Volume">
+        <input id="trackDmx" placeholder="Daily DMX Volume">
+        <button onclick="logDailyStake()">Save Daily Volume</button>
+    </div>
+
+    <div class="box">
+        <h2>System Config</h2>
+        <input id="incomeCap" placeholder="Multiplier (e.g. 4)">
+        <button onclick="setCap()">Set 4X Multiplier</button>
+        <input id="directPerc" placeholder="Direct % (e.g. 10)">
+        <button onclick="setDirect()">Set Direct %</button>
+        <hr>
+        <input id="newTreasury" placeholder="New Treasury Address">
+        <button onclick="setTreasury()">Update Treasury</button>
+    </div>
+
+    <div class="box" style="border-top: 3px solid #ff4444;">
+        <h2>Security (Emergency Only)</h2>
+        <div style="display:flex; gap:10px;">
+            <button class="danger" onclick="pauseSys()">PAUSE</button>
+            <button style="background:#0088ff; color:white;" onclick="unpauseSys()">UNPAUSE</button>
+        </div>
+        <hr>
+        <input id="tokenAddr" placeholder="Token Address">
+        <input id="withAmt" placeholder="Amount">
+        <button class="danger" onclick="emergencyWithdraw()">Emergency Token Withdraw</button>
+    </div>
+</div>
+
+<script>
+let signer;
+let contract;
+const contractAddress = "YOUR_DEPLOYED_CONTRACT_ADDRESS";
+
+const abi = [
+    "function getMembersList() view returns (address[])",
+    "function getMembersCount() view returns (uint256)",
+    "function totalClaimPendingDMX() view returns (uint256)",
+    "function totalRestakeDMX() view returns (uint256)",
+    "function getDMXFromUSDT(uint256) view returns (uint256)",
+    "function dailyHistory(uint256) view returns (uint256 totalStakedUSDT, uint256 totalStakedDMX, uint256 totalRewardsDMX, uint256 totalDirectIncomeDMX, uint256 totalLevelBonusDMX)",
+    "function getDailyDate() view returns (uint256)",
+    "function setManualPrice(uint256 _dmxPerUSDT)",
+    "function setUseLivePrice(bool _useLive)", 
+    "function toggleManualPrice(bool _on)", // ABI Safety: added both possibilities
+    "function resetCap(address _u)",
+    "function unlockLevelManually(address _u, uint256 _time)",
+    "function giveRankReward(address _u, uint256 _dmxAmount, string memory _rank)",
+    "function setDailyRewardPercent(uint256 _duration, uint256 _newPercentBPS)",
+    "function setLevelPercent(uint256 _level, uint256 _newPercentBPS)",
+    "function setIncomeCap(uint256 _newMultiplier)",
+    "function setDirectPercent(uint256 _newPercent)",
+    "function trackDailyStake(uint256 _usdt, uint256 _dmx)",
+    "function postAnnouncement(string memory _message, string memory _posterURL)",
+    "function changeTreasury(address _newTreasury)",
+    "function addMember(address _u)",
+    "function emergencyWithdrawToken(address _token, address _to, uint256 _v)",
+    "function pause()",
+    "function unpause()"
+];
+
+async function connectWallet() {
+    if (window.ethereum) {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        document.getElementById("wallet").innerText = "Admin: " + await signer.getAddress();
+        contract = new ethers.Contract(contractAddress, abi, signer);
+        refreshStats();
+    }
+}
+
+// ✅ ISSUE 2 FIX: SAFE VIEW LOGIC
+async function refreshStats() {
+    try {
+        const price = await contract.getDMXFromUSDT(ethers.utils.parseEther("1"));
+        const dmxPerUSDT = parseFloat(ethers.utils.formatEther(price));
+
+        if (dmxPerUSDT > 0) {
+            document.getElementById("livePrice").innerText = (1 / dmxPerUSDT).toFixed(6) + " USDT";
+        } else {
+            document.getElementById("livePrice").innerText = "0.00 USDT";
+        }
+
+        const pending = await contract.totalClaimPendingDMX();
+        const restake = await contract.totalRestakeDMX();
+        const count = await contract.getMembersCount();
+
+        document.getElementById("pClaim").innerText = ethers.utils.formatEther(pending);
+        document.getElementById("tRestake").innerText = ethers.utils.formatEther(restake);
+        document.getElementById("mCount").innerText = count.toString();
+    } catch(e) { console.error("View Error:", e); }
+}
+
+// ✅ ISSUE 1 FIX: PRECISION SAFE MANUAL PRICE
+async function updateManualPrice() {
+    const input = document.getElementById("manualPriceInput").value;
+    const price = parseFloat(input);
+
+    if (!price || price <= 0) {
+        alert("Invalid manual price");
+        return;
+    }
+
+    // Convert USDT/DMX to DMX/USDT for contract storage
+    const dmxPerUSDTString = (1 / price).toFixed(18);
+    const dmxPerUSDTUnits = ethers.utils.parseUnits(dmxPerUSDTString, 18);
+
+    run(contract.setManualPrice(dmxPerUSDTUnits));
+}
+
+// ✅ ISSUE 3 FIX: DUAL ABI SUPPORT
+async function setPriceMode(m) {
+    try {
+        // First try setUseLivePrice
+        if (typeof contract.setUseLivePrice === "function") {
+            run(contract.setUseLivePrice(m));
+        } else {
+            // Fallback to toggleManualPrice
+            run(contract.toggleManualPrice(!m)); 
+        }
+    } catch(e) { alert("Function name mismatch in contract. Check ABI."); }
+}
+
+async function refreshMembers() {
+    const list = await contract.getMembersList();
+    document.getElementById("memberList").innerHTML = list.map((a, i) => `${i+1}. ${a}`).join("<br>");
+}
+
+async function run(p) { try { const t = await p; await t.wait(); alert("Success!"); refreshStats(); } catch(e) { alert("Failed: " + e.message); } }
+
+// Regular Admin Actions
+function resetCap() { run(contract.resetCap(document.getElementById("targetUser").value)); }
+function unlockLevel() { run(contract.unlockLevelManually(document.getElementById("targetUser").value, 30*86400)); }
+function addMember() { run(contract.addMember(document.getElementById("targetUser").value)); }
+function setCap() { run(contract.setIncomeCap(document.getElementById("incomeCap").value)); }
+function setDirect() { run(contract.setDirectPercent(document.getElementById("directPerc").value)); }
+function giveRankReward() { run(contract.giveRankReward(document.getElementById("rankUser").value, ethers.utils.parseEther(document.getElementById("rankAmt").value), document.getElementById("rankName").value)); }
+function logDailyStake() { run(contract.trackDailyStake(ethers.utils.parseEther(document.getElementById("trackUsdt").value), ethers.utils.parseEther(document.getElementById("trackDmx").value))); }
+function setTreasury() { run(contract.changeTreasury(document.getElementById("newTreasury").value)); }
+function pauseSys() { run(contract.pause()); }
+function unpauseSys() { run(contract.unpause()); }
+function emergencyWithdraw() { run(contract.emergencyWithdrawToken(document.getElementById("tokenAddr").value, signer.getAddress(), ethers.utils.parseEther(document.getElementById("withAmt").value))); }
+
+</script>
+</body>
+</html>
 
