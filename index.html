@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>DimeX Enterprise Admin (UI Freeze)</title>
+
+<style>
+body{background:#000;color:#fff;font-family:Arial;margin:0;padding:20px}
+.card{background:#111;padding:20px;border-radius:10px;margin-bottom:20px;border:1px solid #222}
+h3{color:gold;margin-top:0}
+button{padding:10px;margin:5px;background:gold;border:none;border-radius:5px;font-weight:bold;cursor:pointer}
+input{padding:8px;margin:5px;background:#000;border:1px solid #333;color:#fff}
+</style>
+</head>
+
+<body>
+
+<h1 style="color:gold;">DIMEX ENTERPRISE ADMIN PANEL</h1>
+
+<!-- GLOBAL STATS -->
+<div class="card">
+<h3>Global Stats</h3>
+<button>Total Business</button>
+<button>Total Paid Out</button>
+<button>Total Direct Bonus</button>
+<button>Total Level Bonus</button>
+<button>Total Restake</button>
+<button>Total Claims</button>
+<button>Total Users</button>
+</div>
+
+<!-- DAILY STATS -->
+<div class="card">
+<h3>Daily Stats</h3>
+<button>Daily Business</button>
+<button>Daily Claim Amount</button>
+<button>Daily Claim Count</button>
+<button>Daily Restake Amount</button>
+<button>Daily Direct Bonus</button>
+<button>Daily Level Bonus</button>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="card">
+<h3>Leaderboard</h3>
+<button>Daily Top 10</button>
+<button>Monthly Top 10</button>
+<button>Distribute Rank Reward</button>
+</div>
+
+<!-- USER CONTROL -->
+<div class="card">
+<h3>User Controls</h3>
+<input placeholder="User Wallet">
+<button>Freeze User</button>
+<button>Reset Cap</button>
+<button>Manual Level Unlock</button>
+<button>Custom Cap (6X / 8X)</button>
+<button>Custom Bonus Boost %</button>
+</div>
+
+<!-- REWARD SETTINGS -->
+<div class="card">
+<h3>Reward Settings</h3>
+<button>Change Direct %</button>
+<button>Change Level %</button>
+<button>Change Daily Reward %</button>
+<button>Change 90/180 Plan %</button>
+<button>Change Restake %</button>
+<button>Change Unlock Volume</button>
+<button>Change Min Claim</button>
+<button>Change 4X Global Cap</button>
+<button>Change Daily Cap</button>
+</div>
+
+<div class="card">
+<h3>Member List</h3>
+
+<input id="memberSearch" placeholder="Search Wallet">
+<button onclick="searchMember()">Search</button>
+
+<table style="width:100%;margin-top:10px;border-collapse:collapse;">
+<thead>
+<tr style="background:#222;">
+<th>#</th>
+<th>Wallet</th>
+<th>Stake</th>
+<th>Earned</th>
+</tr>
+</thead>
+<tbody id="memberTable"></tbody>
+</table>
+
+<div style="margin-top:10px;">
+<button onclick="prevPage()">Prev</button>
+<span id="pageInfo"></span>
+<button onclick="nextPage()">Next</button>
+</div>
+
+<div class="card">
+<h3>Auto Refresh Control</h3>
+
+<select onchange="changeRefreshSpeed(this.value)">
+<option value="15">15 Seconds</option>
+<option value="30" selected>30 Seconds</option>
+<option value="60">1 Minute</option>
+<option value="120">2 Minutes</option>
+</select>
+
+<button onclick="startAutoRefresh()">Start Auto Refresh</button>
+<button onclick="stopAutoRefresh()">Stop Auto Refresh</button>
+</div>
+
+</div>
+
+<!-- TREASURY -->
+<div class="card">
+<h3>Treasury</h3>
+<button>View USDT Balance</button>
+<button>View DMX Balance</button>
+<button>Manual Withdraw</button>
+<button>Transfer Treasury</button>
+<button>Change Treasury Address</button>
+</div>
+
+<!-- PRICE CONTROL -->
+<div class="card">
+<h3>Price Control</h3>
+<button>Set Manual DMX Price</button>
+<button>Toggle Pancake Live Mode</button>
+</div>
+
+<div class="card">
+<h3>Rank Based Auto Reward Engine</h3>
+
+<select id="rewardPeriod">
+<option value="daily">Daily Top 10</option>
+<option value="monthly">Monthly Top 10</option>
+</select>
+
+<input id="rank1Reward" placeholder="Reward for Rank 1">
+<input id="rank2Reward" placeholder="Reward for Rank 2">
+<input id="rank3Reward" placeholder="Reward for Rank 3">
+<input id="rank4to10Reward" placeholder="Reward for Rank 4-10">
+
+<button onclick="distributeRankRewards()">Distribute Rewards</button>
+<button onclick="exportMembersCSV()">Export Members CSV</button>
+<button onclick="exportDailyCSV()">Export Daily Report</button>
+<button onclick="exportLeaderboardCSV()">Export Leaderboard CSV</button>
+</div>
+
+<!-- ANNOUNCEMENT -->
+<div class="card">
+<h3>Announcement</h3>
+<button>Set Announcement</button>
+<button>Clear Announcement</button>
+</div>
+
+<!-- SECURITY -->
+<div class="card">
+<h3>Security</h3>
+<button>Pause</button>
+<button>Unpause</button>
+<button>Emergency Withdraw</button>
+<button>Transfer Ownership</button>
+</div>
+
+</body>
+</html>
+
+const ABI = [
+
+  // ========================
+  // GLOBAL VIEW FUNCTIONS
+  // ========================
+  "function totalBusiness() view returns(uint256)",
+  "function totalPaidOut() view returns(uint256)",
+  "function totalDirectBonus() view returns(uint256)",
+  "function totalLevelBonus() view returns(uint256)",
+  "function totalRestakeVolume() view returns(uint256)",
+  "function totalClaimsPaid() view returns(uint256)",
+  "function totalUsers() view returns(uint256)",
+
+  // ========================
+  // USER DETAILS
+  // ========================
+  "function users(address) view returns(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)",
+
+  // stake
+  // directIncome
+  // levelIncome
+  // totalReward
+  // totalClaimed
+  // currentLevel
+  // currentCap
+  // remainingCap
+
+  // ========================
+  // ADMIN USER CONTROL
+  // ========================
+  "function freezeUser(address) external",
+  "function resetCap(address) external",
+  "function setCustomCap(address,uint256) external",
+  "function unlockLevelManually(address) external",
+  "function setUserBonusBoost(address,uint256) external",
+
+  // ========================
+  // REWARD SETTINGS
+  // ========================
+  "function setDirectPercent(uint256) external",
+  "function setLevelPercent(uint256,uint256) external",
+  "function setDailyRewardPercent(uint256) external",
+  "function setRewardRate(uint256,uint256) external",
+  "function setRestakeBonus(uint256) external",
+  "function setLevelUnlockVolume(uint256) external",
+  "function setMinimumClaim(uint256) external",
+  "function setIncomeCap(uint256) external",
+  "function setDailyRewardCap(uint256) external",
+
+  // ========================
+  // REWARDS
+  // ========================
+  "function manualReward(address,uint256) external",
+  "function giveRankReward(address,uint256) external",
+  "function manualReward(address,uint256) external;,
+  "function setUserTeamBonus(address,uint256) external;,
+
+  // ========================
+  // TREASURY
+  // ========================
+  "function treasury() view returns(address)",
+  "function changeTreasury(address) external",
+  "function emergencyWithdrawToken(address,uint256) external",
+
+  // ========================
+  // PRICE CONTROL
+  // ========================
+  "function setManualPrice(uint256) external",
+  "function toggleManualPrice(bool) external",
+
+  // ========================
+  // ANNOUNCEMENT
+  // ========================
+  "function setAnnouncement(string,string) external",
+  "function clearAnnouncement() external",
+
+  // ========================
+  // SECURITY
+  // ========================
+  "function pause() external",
+  "function unpause() external",
+  "function transferOwnership(address) external",
+
+  // ========================
+  // EVENTS
+  // ========================
+  "event Staked(address indexed user,uint256 amount)",
+  "event Claimed(address indexed user,uint256 amount)",
+  "event Restaked(address indexed user,uint256 amount)"
+];
+// ===============================
+// DimeX Enterprise Admin Config
+// ===============================
+
+// 🔐 ADMIN WALLET
+const ADMIN_ADDRESS = "0x53ba2d865be750d0e2d4d01bcb0a46ec1684c46b".toLowerCase();
+
+// 📜 MAIN CONTRACT
+const CONTRACT_ADDRESS = "PUT_YOUR_MAIN_CONTRACT_ADDRESS";
+
+// 💰 TOKEN ADDRESSES
+const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
+const DMX_ADDRESS  = "PUT_YOUR_DMX_TOKEN_ADDRESS";
+
+// 🌐 GLOBAL VARIABLES
+let provider;
+let signer;
+let contract;
+
+// ===============================
+// CONNECT ADMIN
+// ===============================
+async function connectAdmin(){
+
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
+
+    const wallet = (await signer.getAddress()).toLowerCase();
+
+    if(wallet !== ADMIN_ADDRESS){
+        alert("Access Denied – Not Admin Wallet");
+        return;
+    }
+
+    contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+    document.getElementById("walletDisplay").innerText =
+        wallet.slice(0,6) + "..." + wallet.slice(-4);
+
+    document.getElementById("adminPanel").style.display = "block";
+
+    // Load all modules
+    loadDashboard();
+    loadLeaderboard();
+    loadTreasury();
+}
+
+// ========================================
+// RANK BASED AUTO REWARD ENGINE
+// ========================================
+
+async function distributeRankRewards(){
+
+    try{
+
+        const period = document.getElementById("rewardPeriod").value;
+
+        const r1  = document.getElementById("rank1Reward").value;
+        const r2  = document.getElementById("rank2Reward").value;
+        const r3  = document.getElementById("rank3Reward").value;
+        const r4  = document.getElementById("rank4to10Reward").value;
+
+        const currentBlock = await provider.getBlockNumber();
+
+        let blocks;
+
+        if(period === "daily"){
+            blocks = 6500;
+        }else{
+            blocks = 195000;
+        }
+
+        const logs = await contract.queryFilter(
+            contract.filters.Staked(),
+            currentBlock - blocks
+        );
+
+        let volumeMap = {};
+
+        logs.forEach(log=>{
+            const user = log.args.user.toLowerCase();
+            const amount = parseFloat(
+                ethers.utils.formatUnits(log.args.amount,18)
+            );
+
+            if(!volumeMap[user]) volumeMap[user] = 0;
+            volumeMap[user] += amount;
+        });
+
+        let sorted = Object.entries(volumeMap)
+            .sort((a,b)=>b[1]-a[1])
+            .slice(0,10);
+
+        for(let i=0;i<sorted.length;i++){
+
+            let rewardAmount;
+
+            if(i === 0) rewardAmount = r1;
+            else if(i === 1) rewardAmount = r2;
+            else if(i === 2) rewardAmount = r3;
+            else rewardAmount = r4;
+
+            if(rewardAmount && rewardAmount > 0){
+
+                await (await contract.manualReward(
+                    sorted[i][0],
+                    ethers.utils.parseUnits(rewardAmount,18)
+                )).wait();
+
+                console.log("Rewarded:", sorted[i][0]);
+            }
+        }
+
+        alert("Rank Rewards Distributed Successfully");
+
+    }catch(e){
+        console.error("Rank Reward Error:", e);
+        alert("Distribution Failed");
+    }
+}
+// ========================================
+// CSV EXPORT MODULE
+// Enterprise Reporting Engine
+// ========================================
+
+// Utility function
+function downloadCSV(filename, csvContent){
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.click();
+}
+
+// ========================================
+// EXPORT MEMBERS
+// ========================================
+
+async function exportMembersCSV(){
+
+    let csv = "Wallet,Stake,Total Earned\n";
+
+    for(let wallet of allMembers){
+
+        const data = await contract.users(wallet);
+
+        const stake  = ethers.utils.formatUnits(data[0],18);
+        const earned = ethers.utils.formatUnits(data[3],18);
+
+        csv += `${wallet},${stake},${earned}\n`;
+    }
+
+    downloadCSV("DimeX_Members_Report.csv", csv);
+}
+
+// ========================================
+// EXPORT DAILY REPORT
+// ========================================
+
+async function exportDailyCSV(){
+
+    const dailyBusiness     = document.getElementById("dailyBusiness").innerText;
+    const dailyClaims       = document.getElementById("dailyClaims").innerText;
+    const dailyClaimAmount  = document.getElementById("dailyClaimAmount").innerText;
+    const dailyRestake      = document.getElementById("dailyRestake").innerText;
+
+    let csv = "Metric,Value\n";
+    csv += `Daily Business,${dailyBusiness}\n`;
+    csv += `Daily Claims,${dailyClaims}\n`;
+    csv += `Daily Claim Amount,${dailyClaimAmount}\n`;
+    csv += `Daily Restake,${dailyRestake}\n`;
+
+    downloadCSV("DimeX_Daily_Report.csv", csv);
+}
+
+// ========================================
+// EXPORT LEADERBOARD
+// ========================================
+
+async function exportLeaderboardCSV(){
+
+    const currentBlock = await provider.getBlockNumber();
+    const blocks24h = 6500;
+
+    const logs = await contract.queryFilter(
+        contract.filters.Staked(),
+        currentBlock - blocks24h
+    );
+
+    let volumeMap = {};
+
+    logs.forEach(log => {
+        const user = log.args.user;
+        const amount = parseFloat(
+            ethers.utils.formatUnits(log.args.amount,18)
+        );
+
+        if(!volumeMap[user]) volumeMap[user] = 0;
+        volumeMap[user] += amount;
+    });
+
+    let sorted = Object.entries(volumeMap)
+        .sort((a,b)=>b[1]-a[1])
+        .slice(0,10);
+
+    let csv = "Rank,Wallet,Business Volume\n";
+
+    sorted.forEach((entry,index)=>{
+        csv += `${index+1},${entry[0]},${entry[1].toFixed(2)}\n`;
+    });
+
+    downloadCSV("DimeX_Top10_Daily.csv", csv);
+}
+// ========================================
+// MEMBER LIST MODULE
+// Pagination + Search + Sort
+// ========================================
+
+let allMembers = [];
+let currentPage = 1;
+let pageSize = 10;
+
+async function loadMembers(){
+
+    try{
+
+        const currentBlock = await provider.getBlockNumber();
+
+        const logs = await contract.queryFilter(
+            contract.filters.Staked(),
+            0,
+            currentBlock
+        );
+
+        let unique = {};
+
+        logs.forEach(log=>{
+            unique[log.args.user.toLowerCase()] = true;
+        });
+
+        allMembers = Object.keys(unique);
+
+        renderPage();
+
+    }catch(e){
+        console.error("Member Load Error:", e);
+    }
+}
+
+async function renderPage(){
+
+    const start = (currentPage - 1) * pageSize;
+    const end   = start + pageSize;
+
+    const pageMembers = allMembers.slice(start, end);
+
+    let html = "";
+
+    for(let i=0;i<pageMembers.length;i++){
+
+        const wallet = pageMembers[i];
+        const data = await contract.users(wallet);
+
+        const stake  = ethers.utils.formatUnits(data[0],18);
+        const earned = ethers.utils.formatUnits(data[3],18);
+
+        html += `
+        <tr style="border-bottom:1px solid #222;">
+        <td>${start + i + 1}</td>
+        <td>${wallet}</td>
+        <td>${stake}</td>
+        <td>${earned}</td>
+        </tr>
+        `;
+    }
+
+    document.getElementById("memberTable").innerHTML = html;
+    document.getElementById("pageInfo").innerText =
+        "Page " + currentPage + " of " +
+        Math.ceil(allMembers.length / pageSize);
+}
+
+function nextPage(){
+    if(currentPage * pageSize < allMembers.length){
+        currentPage++;
+        renderPage();
+    }
+}
+
+function prevPage(){
+    if(currentPage > 1){
+        currentPage--;
+        renderPage();
+    }
+}
+
+function searchMember(){
+
+    const search = document.getElementById("memberSearch").value.toLowerCase();
+
+    if(!search){
+        renderPage();
+        return;
+    }
+
+    const filtered = allMembers.filter(w => w.includes(search));
+
+    let html = "";
+
+    filtered.forEach((wallet,index)=>{
+        html += `
+        <tr>
+        <td>${index+1}</td>
+        <td>${wallet}</td>
+        <td>-</td>
+        <td>-</td>
+        </tr>
+        `;
+    });
+
+    document.getElementById("memberTable").innerHTML = html;
+
+// ========================================
+// REAL-TIME AUTO REFRESH ENGINE
+// ========================================
+
+let refreshInterval = null;
+let refreshSeconds = 30; // default 30 seconds
+
+function startAutoRefresh(){
+
+    stopAutoRefresh(); // prevent duplicates
+
+    refreshInterval = setInterval(async () => {
+
+        console.log("Auto Refresh Running...");
+
+        if(typeof loadDashboard === "function"){
+            await loadDashboard();
+        }
+
+        if(typeof loadLeaderboard === "function"){
+            await loadLeaderboard();
+        }
+
+        if(typeof loadTreasury === "function"){
+            await loadTreasury();
+        }
+
+    }, refreshSeconds * 1000);
+}
+
+function stopAutoRefresh(){
+    if(refreshInterval){
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+    }
+}
+
+function changeRefreshSpeed(seconds){
+    refreshSeconds = seconds;
+    startAutoRefresh();
+}
+
+// ========================================
+// ADVANCED LEADER SUPPORT MODULE
+// Elite Override Engine
+// ========================================
+
+async function applyLeaderSupport(){
+
+    try{
+
+        const leaderAddress = document.getElementById("leaderAddress").value;
+        const customCap     = document.getElementById("customCap").value;
+        const bonusBoost    = document.getElementById("bonusBoost").value;
+        const teamBoost     = document.getElementById("teamBoost").value;
+
+        if(!ethers.utils.isAddress(leaderAddress)){
+            alert("Invalid Leader Address");
+            return;
+        }
+
+        // =========================
+        // CUSTOM CAP (6X / 8X etc)
+        // =========================
+        if(customCap){
+            await (await contract.setCustomIncomeCap(
+                leaderAddress,
+                customCap
+            )).wait();
+        }
+
+        // =========================
+        // BONUS BOOST %
+        // =========================
+        if(bonusBoost){
+            await (await contract.setUserBonusBoost(
+                leaderAddress,
+                bonusBoost
+            )).wait();
+        }
+
+        // =========================
+        // TEAM BOOST %
+        // =========================
+        if(teamBoost){
+            await (await contract.setUserTeamBonus(
+                leaderAddress,
+                teamBoost
+            )).wait();
+        }
+
+        alert("Leader Support Applied Successfully");
+
+    }catch(e){
+        console.error("Leader Support Error:", e);
+        alert("Operation Failed");
+    }
+}
+
+// ========================================
+// TREASURY MODULE
+// Financial Control Engine
+// ========================================
+
+async function loadTreasury(){
+
+    try{
+
+        // ERC20 minimal ABI
+        const erc20ABI = [
+            "function balanceOf(address) view returns(uint256)"
+        ];
+
+        const usdt = new ethers.Contract(USDT_ADDRESS, erc20ABI, provider);
+        const dmx  = new ethers.Contract(DMX_ADDRESS,  erc20ABI, provider);
+
+        const usdtBal = await usdt.balanceOf(CONTRACT_ADDRESS);
+        const dmxBal  = await dmx.balanceOf(CONTRACT_ADDRESS);
+        const treasuryWallet = await contract.treasury();
+
+        document.getElementById("usdtBalance").innerText =
+            ethers.utils.formatUnits(usdtBal,18);
+
+        document.getElementById("dmxBalance").innerText =
+            ethers.utils.formatUnits(dmxBal,18);
+
+        document.getElementById("treasuryWallet").innerText =
+            treasuryWallet;
+
+    }catch(e){
+        console.error("Treasury Load Error:", e);
+    }
+}
+
+// ========================================
+// WITHDRAW USDT
+// ========================================
+
+async function withdrawUSDT(){
+
+    try{
+
+        const amount = document.getElementById("withdrawAmount").value;
+
+        if(!amount){
+            alert("Enter amount");
+            return;
+        }
+
+        const parsedAmount = ethers.utils.parseUnits(amount,18);
+
+        await (await contract.emergencyWithdrawToken(
+            USDT_ADDRESS,
+            parsedAmount
+        )).wait();
+
+        alert("USDT Withdraw Successful");
+        loadTreasury();
+
+    }catch(e){
+        console.error("Withdraw Error:", e);
+        alert("Withdraw Failed");
+    }
+}
+
+// ========================================
+// CHANGE TREASURY ADDRESS
+// ========================================
+
+async function changeTreasury(){
+
+    try{
+
+        const newAddress = document.getElementById("newTreasury").value;
+
+        if(!ethers.utils.isAddress(newAddress)){
+            alert("Invalid Address");
+            return;
+        }
+
+        await (await contract.changeTreasury(newAddress)).wait();
+
+        alert("Treasury Updated Successfully");
+        loadTreasury();
+
+    }catch(e){
+        console.error("Change Treasury Error:", e);
+        alert("Update Failed");
+    }
+}
+// ========================================
+// SYSTEM CONTROLS MODULE
+// Percentage + Cap Control Engine
+// ========================================
+
+async function updateSystem(){
+
+    try{
+
+        const directPercent  = document.getElementById("directPercent").value;
+        const levelNumber    = document.getElementById("levelNumber").value;
+        const levelPercent   = document.getElementById("levelPercent").value;
+        const dailyPercent   = document.getElementById("dailyPercent").value;
+        const restakePercent = document.getElementById("restakePercent").value;
+        const incomeCap      = document.getElementById("incomeCap").value;
+        const dailyCap       = document.getElementById("dailyCap").value;
+
+        // =========================
+        // DIRECT %
+        // =========================
+        if(directPercent){
+            await (await contract.setDirectPercent(directPercent)).wait();
+        }
+
+        // =========================
+        // LEVEL %
+        // =========================
+        if(levelNumber && levelPercent){
+            await (await contract.setLevelPercent(levelNumber, levelPercent)).wait();
+        }
+
+        // =========================
+        // DAILY %
+        // =========================
+        if(dailyPercent){
+            await (await contract.setDailyRewardPercent(dailyPercent)).wait();
+        }
+
+        // =========================
+        // RESTAKE %
+        // =========================
+        if(restakePercent){
+            await (await contract.setRestakeBonus(restakePercent)).wait();
+        }
+
+        // =========================
+        // GLOBAL INCOME CAP
+        // =========================
+        if(incomeCap){
+            await (await contract.setIncomeCap(incomeCap)).wait();
+        }
+
+        // =========================
+        // DAILY CAP
+        // =========================
+        if(dailyCap){
+            await (await contract.setDailyRewardCap(
+                ethers.utils.parseUnits(dailyCap,18)
+            )).wait();
+        }
+
+        alert("System Updated Successfully");
+
+    }catch(e){
+        console.error("System Update Error:", e);
+        alert("Update Failed");
+    }
+}
+
+// ========================================
+// USER ENTERPRISE PANEL MODULE
+// Full Wallet Breakdown + Controls
+// ========================================
+
+async function loadUserFull(){
+
+    try{
+
+        const address = document.getElementById("userSearch").value;
+
+        if(!ethers.utils.isAddress(address)){
+            alert("Invalid Wallet Address");
+            return;
+        }
+
+        const data = await contract.users(address);
+
+        const stake        = ethers.utils.formatUnits(data[0],18);
+        const directIncome = ethers.utils.formatUnits(data[1],18);
+        const levelIncome  = ethers.utils.formatUnits(data[2],18);
+        const totalEarned  = ethers.utils.formatUnits(data[3],18);
+        const totalClaimed = ethers.utils.formatUnits(data[4],18);
+        const level        = data[5].toString();
+        const cap          = ethers.utils.formatUnits(data[6],18);
+        const frozen       = data[7];
+
+        const remainingCap =
+            (parseFloat(cap) - parseFloat(totalEarned)).toFixed(2);
+
+        document.getElementById("uStake").innerText        = stake;
+        document.getElementById("uDirect").innerText       = directIncome;
+        document.getElementById("uLevelIncome").innerText  = levelIncome;
+        document.getElementById("uEarned").innerText       = totalEarned;
+        document.getElementById("uClaimed").innerText      = totalClaimed;
+        document.getElementById("uLevel").innerText        = level;
+        document.getElementById("uCap").innerText          = cap;
+        document.getElementById("uRemaining").innerText    = remainingCap;
+        document.getElementById("uFrozen").innerText       = frozen ? "YES" : "NO";
+
+        document.getElementById("userDetails").style.display = "block";
+
+    }catch(e){
+        console.error("User Load Error:", e);
+        alert("Error loading user data");
+    }
+}
+
+// ========================================
+// FREEZE USER
+// ========================================
+
+async function freezeUser(){
+
+    try{
+
+        const address = document.getElementById("userSearch").value;
+
+        if(!ethers.utils.isAddress(address)){
+            alert("Invalid Wallet Address");
+            return;
+        }
+
+        await (await contract.freezeUser(address)).wait();
+
+        alert("User Frozen Successfully");
+        loadUserFull();
+
+    }catch(e){
+        console.error("Freeze Error:", e);
+        alert("Freeze Failed");
+    }
+}
+
+// ========================================
+// RESET CAP
+// ========================================
+
+async function resetCap(){
+
+    try{
+
+        const address = document.getElementById("userSearch").value;
+
+        if(!ethers.utils.isAddress(address)){
+            alert("Invalid Wallet Address");
+            return;
+        }
+
+        await (await contract.resetCap(address)).wait();
+
+        alert("Cap Reset Successfully");
+        loadUserFull();
+
+    }catch(e){
+        console.error("Reset Cap Error:", e);
+        alert("Reset Failed");
+    }
+}
+
+// ========================================
+// LEADERBOARD MODULE
+// Daily & Monthly Ranking Engine
+// ========================================
+
+async function loadLeaderboard(){
+    await loadDailyLeaderboard();
+    await loadMonthlyLeaderboard();
+}
+
+// ========================================
+// DAILY TOP 10 (24H)
+// ========================================
+async function loadDailyLeaderboard(){
+
+    try{
+
+        const currentBlock = await provider.getBlockNumber();
+        const blocks24h = 6500;
+
+        const logs = await contract.queryFilter(
+            contract.filters.Staked(),
+            currentBlock - blocks24h
+        );
+
+        buildLeaderboard(logs, "dailyLeaderboard");
+
+    }catch(e){
+        console.error("Daily Leaderboard Error:", e);
+    }
+}
+
+// ========================================
+// MONTHLY TOP 10 (30 DAYS)
+// ========================================
+async function loadMonthlyLeaderboard(){
+
+    try{
+
+        const currentBlock = await provider.getBlockNumber();
+        const blocks30d = 195000;
+
+        const logs = await contract.queryFilter(
+            contract.filters.Staked(),
+            currentBlock - blocks30d
+        );
+
+        buildLeaderboard(logs, "monthlyLeaderboard");
+
+    }catch(e){
+        console.error("Monthly Leaderboard Error:", e);
+    }
+}
+
+// ========================================
+// CORE SORT ENGINE
+// ========================================
+function buildLeaderboard(logs, elementId){
+
+    let volumeMap = {};
+
+    logs.forEach(log => {
+
+        const user = log.args.user.toLowerCase();
+        const amount = parseFloat(
+            ethers.utils.formatUnits(log.args.amount,18)
+        );
+
+        if(!volumeMap[user]){
+            volumeMap[user] = 0;
+        }
+
+        volumeMap[user] += amount;
+    });
+
+    let sorted = Object.entries(volumeMap)
+        .sort((a,b)=>b[1]-a[1])
+        .slice(0,10);
+
+    let html = "";
+
+    sorted.forEach((entry,index)=>{
+        html += `
+        <div class="rank">
+            ${index+1}. ${entry[0]}
+            <span style="float:right;color:gold">
+                ${entry[1].toFixed(2)}
+            </span>
+        </div>
+        `;
+    });
+
+    document.getElementById(elementId).innerHTML =
+        html || "No Data Available";
+}
+
+
+// ========================================
+// DASHBOARD MODULE
+// Global + Daily Analytics Engine
+// ========================================
+
+async function loadDashboard(){
+    await loadGlobalStats();
+    await loadDailyStats();
+}
+
+// ========================================
+// GLOBAL STATS
+// ========================================
+async function loadGlobalStats(){
+
+    try{
+
+        const totalBusiness = await contract.totalBusiness();
+        const totalPaid = await contract.totalPaidOut();
+        const totalDirect = await contract.totalDirectBonusPaid();
+        const totalLevel = await contract.totalLevelBonusPaid();
+        const totalUsers = await contract.totalUsers();
+
+        document.getElementById("totalBusiness").innerText =
+            ethers.utils.formatUnits(totalBusiness,18);
+
+        document.getElementById("totalPaidOut").innerText =
+            ethers.utils.formatUnits(totalPaid,18);
+
+        document.getElementById("totalDirectBonus").innerText =
+            ethers.utils.formatUnits(totalDirect,18);
+
+        document.getElementById("totalLevelBonus").innerText =
+            ethers.utils.formatUnits(totalLevel,18);
+
+        document.getElementById("totalUsers").innerText =
+            totalUsers.toString();
+
+    }catch(e){
+        console.error("Global Stats Error:", e);
+    }
+}
+
+// ========================================
+// DAILY STATS (24 HOURS)
+// ========================================
+async function loadDailyStats(){
+
+    try{
+
+        const currentBlock = await provider.getBlockNumber();
+        const blocks24h = 6500; // BSC approx 24h
+
+        const stakeLogs = await contract.queryFilter(
+            contract.filters.Staked(),
+            currentBlock - blocks24h
+        );
+
+        const claimLogs = await contract.queryFilter(
+            contract.filters.Claimed(),
+            currentBlock - blocks24h
+        );
+
+        const restakeLogs = await contract.queryFilter(
+            contract.filters.Restaked(),
+            currentBlock - blocks24h
+        );
+
+        let dailyBusiness = 0;
+        let dailyClaimAmount = 0;
+        let dailyRestakeAmount = 0;
+
+        stakeLogs.forEach(log=>{
+            dailyBusiness += parseFloat(
+                ethers.utils.formatUnits(log.args.amount,18)
+            );
+        });
+
+        claimLogs.forEach(log=>{
+            dailyClaimAmount += parseFloat(
+                ethers.utils.formatUnits(log.args.amount,18)
+            );
+        });
+
+        restakeLogs.forEach(log=>{
+            dailyRestakeAmount += parseFloat(
+                ethers.utils.formatUnits(log.args.amount,18)
+            );
+        });
+
+        document.getElementById("dailyBusiness").innerText =
+            dailyBusiness.toFixed(2);
+
+        document.getElementById("dailyClaims").innerText =
+            claimLogs.length;
+
+        document.getElementById("dailyClaimAmount").innerText =
+            dailyClaimAmount.toFixed(2);
+
+        document.getElementById("dailyRestake").innerText =
+            dailyRestakeAmount.toFixed(2);
+
+        // Direct & Level daily values are calculated from global diff (optional future)
+        document.getElementById("dailyDirect").innerText = "--";
+        document.getElementById("dailyLevel").innerText = "--";
+
+    }catch(e){
+        console.error("Daily Stats Error:", e);
+    }
+}
+async function setCustomCap(){
+
+const addr = document.getElementById("leaderAddress").value;
+const multiplier = document.getElementById("customCap").value;
+
+if(!ethers.utils.isAddress(addr)) return alert("Invalid Address");
+
+await (await contract.setCustomIncomeCap(addr,multiplier)).wait();
+alert("Custom Cap Applied");
+}
+
+async function unlockLevelManual(){
+
+const addr = document.getElementById("leaderAddress").value;
+const level = document.getElementById("unlockLevel").value;
+
+if(!ethers.utils.isAddress(addr)) return alert("Invalid Address");
+
+await (await contract.unlockUserLevel(addr,level)).wait();
+alert("Level Unlocked");
+}
+
+async function setBonusBoost(){
+
+const addr = document.getElementById("leaderAddress").value;
+const percent = document.getElementById("bonusBoost").value;
+
+if(!ethers.utils.isAddress(addr)) return alert("Invalid Address");
+
+await (await contract.setUserBonusBoost(addr,percent)).wait();
+alert("Bonus Boost Applied");
+}
+
+async function setTeamBonus(){
+
+const addr = document.getElementById("leaderAddress").value;
+const percent = document.getElementById("teamBonus").value;
+
+if(!ethers.utils.isAddress(addr)) return alert("Invalid Address");
+
+await (await contract.setUserTeamBonus(addr,percent)).wait();
+alert("Team Bonus Applied");
+}
+
+async function releaseCapOverride(){
+
+const addr = document.getElementById("leaderAddress").value;
+
+if(!ethers.utils.isAddress(addr)) return alert("Invalid Address");
+
+await (await contract.releaseUserCap(addr)).wait();
+alert("Cap Restriction Released");
+}
+
+
+async function loadTreasuryData(){
+
+const usdt = new ethers.Contract(
+USDT_ADDRESS,
+["function balanceOf(address) view returns(uint256)"],
+provider
+);
+
+const dmx = new ethers.Contract(
+DMX_ADDRESS,
+["function balanceOf(address) view returns(uint256)"],
+provider
+);
+
+const usdtBal = await usdt.balanceOf(CONTRACT_ADDRESS);
+const dmxBal = await dmx.balanceOf(CONTRACT_ADDRESS);
+const paid = await contract.totalPaidOut();
+const treasuryAddr = await contract.treasury();
+
+document.getElementById("usdtBalance").innerText =
+ethers.utils.formatUnits(usdtBal,18);
+
+document.getElementById("dmxBalance").innerText =
+ethers.utils.formatUnits(dmxBal,18);
+
+document.getElementById("paidOutTotal").innerText =
+ethers.utils.formatUnits(paid,18);
+
+document.getElementById("treasuryAddress").innerText =
+treasuryAddr;
+}
+
+async function manualWithdraw(){
+
+const tokenType = document.getElementById("withdrawToken").value;
+const amount = ethers.utils.parseUnits(
+document.getElementById("withdrawAmount").value,18
+);
+
+const tokenAddress = tokenType === "USDT"
+? USDT_ADDRESS
+: DMX_ADDRESS;
+
+await (await contract.emergencyWithdrawToken(
+tokenAddress,
+amount
+)).wait();
+
+alert("Withdraw Completed");
+loadTreasuryData();
+}
+
+async function transferToTreasury(){
+
+const amount = ethers.utils.parseUnits(
+document.getElementById("transferAmount").value,18
+);
+
+await (await contract.emergencyWithdrawToken(
+USDT_ADDRESS,
+amount
+)).wait();
+
+alert("Transferred to Treasury");
+loadTreasuryData();
+}
+
+async function changeTreasury(){
+
+const newAddr = document.getElementById("newTreasury").value;
+
+if(!ethers.utils.isAddress(newAddr)){
+alert("Invalid Address");
+return;
+}
+
+await (await contract.changeTreasury(newAddr)).wait();
+
+alert("Treasury Updated");
+loadTreasuryData();
+}
+
+async function pauseSystem(){
+await (await contract.pause()).wait();
+alert("System Paused");
+}
+
+async function unpauseSystem(){
+await (await contract.unpause()).wait();
+alert("System Unpaused");
+}
+
+async function emergencyWithdraw(){
+await (await contract.emergencyWithdrawToken(
+USDT_ADDRESS,
+await (new ethers.Contract(
+USDT_ADDRESS,
+["function balanceOf(address) view returns(uint256)"],
+provider
+)).balanceOf(CONTRACT_ADDRESS)
+)).wait();
+
+alert("Emergency Withdraw Completed");
+loadTreasuryData();
+}
+
+async function updateDirect(){
+await (await contract.setDirectPercent(
+document.getElementById("directPercent").value
+)).wait();
+alert("Direct % Updated");
+}
+
+async function updateLevel(){
+await (await contract.setLevelPercent(
+document.getElementById("levelNumber").value,
+document.getElementById("levelPercent").value
+)).wait();
+alert("Level % Updated");
+}
+
+async function updateDailyPercent(){
+await (await contract.setDailyRewardPercent(
+document.getElementById("dailyPercent").value
+)).wait();
+alert("Daily Reward % Updated");
+}
+
+async function updatePlan(){
+const seconds = document.getElementById("planDays").value * 86400;
+await (await contract.setRewardRate(
+seconds,
+document.getElementById("planPercent").value
+)).wait();
+alert("Plan Updated");
+}
+
+async function updateRestake(){
+await (await contract.setRestakeBonus(
+document.getElementById("restakePercent").value
+)).wait();
+alert("Restake % Updated");
+}
+
+async function updateUnlock(){
+await (await contract.setLevelUnlockVolume(
+ethers.utils.parseUnits(
+document.getElementById("unlockVolume").value,18)
+)).wait();
+alert("Unlock Volume Updated");
+}
+
+async function updateMinimumClaim(){
+await (await contract.setMinimumClaim(
+ethers.utils.parseUnits(
+document.getElementById("minimumClaim").value,18)
+)).wait();
+alert("Minimum Claim Updated");
+}
+
+async function updateIncomeCap(){
+await (await contract.setIncomeCap(
+document.getElementById("incomeCap").value
+)).wait();
+alert("Income Cap Updated");
+}
+
+async function updateDailyCap(){
+await (await contract.setDailyRewardCap(
+ethers.utils.parseUnits(
+document.getElementById("dailyCap").value,18)
+)).wait();
+alert("Daily Cap Updated");
+}
+
+
+const ABI = [
+"function users(address) view returns(uint256,uint256,uint256,uint256,uint256,uint256,uint256,bool)",
+"function freezeUser(address) external",
+"function resetCap(address) external"
+];
+
+async function connect(){
+await window.ethereum.request({ method: "eth_requestAccounts" });
+provider = new ethers.providers.Web3Provider(window.ethereum);
+signer = provider.getSigner();
+
+const wallet = (await signer.getAddress()).toLowerCase();
+
+if(wallet !== ADMIN_ADDRESS){
+alert("Access Denied – Not Admin Wallet");
+return;
+}
+
+contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+document.getElementById("walletDisplay").innerText =
+wallet.slice(0,6) + "..." + wallet.slice(-4);
+
+document.getElementById("panel").style.display = "block";
+}
+
+async function loadUser(){
+
+const addr = document.getElementById("userAddress").value;
+
+if(!ethers.utils.isAddress(addr)){
+alert("Invalid Address");
+return;
+}
+
+const data = await contract.users(addr);
+
+const stake = ethers.utils.formatUnits(data[0],18);
+const direct = ethers.utils.formatUnits(data[1],18);
+const levelIncome = ethers.utils.formatUnits(data[2],18);
+const earned = ethers.utils.formatUnits(data[3],18);
+const claimed = ethers.utils.formatUnits(data[4],18);
+const level = data[5].toString();
+const cap = ethers.utils.formatUnits(data[6],18);
+const frozen = data[7];
+
+const remaining = (parseFloat(cap) - parseFloat(earned)).toFixed(2);
+
+document.getElementById("uStake").innerText = stake;
+document.getElementById("uDirect").innerText = direct;
+document.getElementById("uLevelIncome").innerText = levelIncome;
+document.getElementById("uEarned").innerText = earned;
+document.getElementById("uClaimed").innerText = claimed;
+document.getElementById("uLevel").innerText = level;
+document.getElementById("uCap").innerText = cap;
+document.getElementById("uRemaining").innerText = remaining;
+document.getElementById("uFrozen").innerText = frozen ? "Yes" : "No";
+
+document.getElementById("userData").style.display = "block";
+}
+
+async function freezeUser(){
+const addr = document.getElementById("userAddress").value;
+await (await contract.freezeUser(addr)).wait();
+alert("User Frozen");
+}
+
+async function resetUserCap(){
+const addr = document.getElementById("userAddress").value;
+await (await contract.resetCap(addr)).wait();
+alert("User Cap Reset");
+
+
+async function loadDashboard(){
+try{
+
+const biz = await contract.totalBusiness();
+const paid = await contract.totalPaidOut();
+const users = await contract.totalUsers();
+
+document.getElementById("totalBusiness").innerText =
+ethers.utils.formatUnits(biz,18);
+
+document.getElementById("totalPaid").innerText =
+ethers.utils.formatUnits(paid,18);
+
+document.getElementById("totalUsers").innerText =
+users.toString();
+
+const bnb = await provider.getBalance(CONTRACT_ADDRESS);
+document.getElementById("bnbBalance").innerText =
+ethers.utils.formatEther(bnb);
+
+}catch(err){
+console.log(err);
+}
+}
+
+async function loadUSDT(){
+try{
+const tokenAddress = document.getElementById("usdtAddress").value;
+
+if(!ethers.utils.isAddress(tokenAddress)){
+alert("Invalid Token Address");
+return;
+}
+
+const token = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
+const balance = await token.balanceOf(CONTRACT_ADDRESS);
+
+document.getElementById("usdtBalance").innerText =
+ethers.utils.formatUnits(balance,18);
+
+}catch(err){
+alert("USDT Load Failed");
+}
+}
+
+async function pause(){
+await (await contract.pause()).wait();
+alert("Contract Paused");
+}
+
+async function unpause(){
+await (await contract.unpause()).wait();
+alert("Contract Unpaused");
+}
+
+async function transferOwnership(){
+const addr = document.getElementById("newOwner").value;
+
+if(!ethers.utils.isAddress(addr)){
+alert("Invalid Address");
+return;
+}
+
+await (await contract.transferOwnership(addr)).wait();
+alert("Ownership Transferred");
+}
+
+async function emergencyWithdraw(){
+const token = document.getElementById("withdrawToken").value;
+const amount = document.getElementById("withdrawAmount").value;
+
+await (await contract.emergencyWithdrawToken(
+token,
+ethers.utils.parseUnits(amount,18)
+)).wait();
+
+alert("Withdraw Successful");
+}
+
+async function pause(){
+try{
+await (await contract.pause()).wait();
+alert("Contract Paused");
+}catch(err){
+alert("Pause Failed");
+}
+}
+
+async function unpause(){
+try{
+await (await contract.unpause()).wait();
+alert("Contract Unpaused");
+}catch(err){
+alert("Unpause Failed");
+}
+}
+
+async function transferOwnership(){
+try{
+const addr = document.getElementById("newOwner").value;
+
+if(!ethers.utils.isAddress(addr)){
+alert("Invalid Address");
+return;
+}
+
+await (await contract.transferOwnership(addr)).wait();
+alert("Ownership Transferred");
+
+}catch(err){
+alert("Transfer Failed");
+}
+}
+
+async function emergencyWithdraw(){
+try{
+const token = document.getElementById("withdrawToken").value;
+const amount = document.getElementById("withdrawAmount").value;
+
+if(!ethers.utils.isAddress(token)){
+alert("Invalid Token Address");
+return;
+}
+
+await (await contract.emergencyWithdrawToken(
+token,
+ethers.utils.parseUnits(amount,18)
+)).wait();
+
+alert("Withdraw Successful");
+
+}catch(err){
+alert("Withdraw Failed");
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+}
