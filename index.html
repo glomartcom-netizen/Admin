@@ -410,8 +410,9 @@ Give Rank
 🚨 Security
 </h2>
 
-<div class="space-y-4">
+<div class="space-y-6">
 
+<!-- Pause Control -->
 <div class="grid grid-cols-2 gap-4">
 
 <button onclick="setPause(true)"
@@ -426,6 +427,8 @@ UNPAUSE
 
 </div>
 
+
+<!-- Manual Reward -->
 <h3 class="text-sm font-bold">Manual Reward</h3>
 
 <input id="rewardAddr"
@@ -444,11 +447,9 @@ class="w-full p-3 rounded-xl">
 class="bg-green-600 py-3 rounded-xl text-white font-bold">
 Send Reward
 </button>
-    
-</div>
-    
-</div>   
-    
+
+
+<!-- Treasury Wallet -->
 <h3 class="text-sm font-bold">Treasury Wallet</h3>
 
 <input id="treasuryAddr"
@@ -461,8 +462,8 @@ class="bg-indigo-600 py-3 rounded-xl text-white font-bold">
 Change Treasury
 </button>
 
-</div>
 
+<!-- Ownership -->
 <div class="grid grid-cols-2 gap-4">
 
 <button onclick="transferOwn()"
@@ -478,6 +479,7 @@ Renounce
 </div>
 
 
+<!-- Emergency Withdraw -->
 <input id="ewTok"
 type="text"
 placeholder="Token Address"
