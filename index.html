@@ -285,79 +285,111 @@ border-radius:10px;
             "function postAnnouncement(string,string)"
         ];
 
-        let provider, signer, contract;
+let provider, signer, contract;
 
-        async function connect() {
+async function connect(){
 
-    if (!window.ethereum) {
-        alert("Please install MetaMask");
-        return;
-    }
+try{
 
-    // 1️⃣ Request wallet connection first
-    const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts"
-    });
-
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    const network = await provider.getNetwork();
-
-    // 2️⃣ Network check
-    if (network.chainId !== TARGET_CHAIN) {
-        alert(`Wrong Network! Switch to BSC (ID: ${TARGET_CHAIN})`);
-        return;
-    }
-
-    // 3️⃣ Admin wallet check
-    if (accounts[0].toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
-        alert("Not authorized.");
-        return;
-    }
-
-    signer = provider.getSigner();
-    contract = new ethers.Contract(contractAddress, abi, signer);
-
-    document.getElementById('adminPanel').style.opacity = "1";
-    document.getElementById('adminPanel').style.pointerEvents = "all";
-
-    document.getElementById('connectBtn').innerText = "Connected";
-
-    document.getElementById('adminStatus').innerText =
-        "Verified: " + accounts[0].slice(0,6) + "..." + accounts[0].slice(-4);
-
-    loadStats();
+if(!window.ethereum){
+alert("Please install MetaMask");
+return;
 }
 
-        async function loadStats() {
-            try {
-                const s = await Promise.all([
-                    contract.totalUSDTStaked(), contract.totalStakedAllUsers(),
-                    contract.totalClaimedDMX(), contract.totalDirectPaid(),
-                    contract.totalLevelPaid(), contract.totalRestakeDMX(),
-                    contract.getTotalPendingClaims(), contract.getMembersCount(),
-                    contract.isManualPrice()
-                ]);
-                const f = ethers.utils.formatEther;
-                document.getElementById('statUSDT').innerText = f(s[0]);
-                document.getElementById('statDMX').innerText = f(s[1]);
-                document.getElementById('statClaimed').innerText = f(s[2]);
-                document.getElementById('statDirectPaid').innerText = f(s[3]);
-                document.getElementById('statLevelPaid').innerText = f(s[4]);
-                document.getElementById('statRestake').innerText = f(s[5]);
-                document.getElementById('statPending').innerText = f(s[6]);
-                document.getElementById('statMembersCount').innerText = s[7].toString();
-                
-                const statusEl = document.getElementById('priceStatus');
-                if (s[8]) {
-                    statusEl.innerText = "MANUAL MODE";
-                    statusEl.className = "text-red-400 font-extrabold font-mono tracking-wider";
-                } else {
-                    statusEl.innerText = "LIVE MARKET";
-                    statusEl.className = "text-emerald-400 font-extrabold font-mono tracking-wider";
-                }
-            } catch(e) { console.error("Sync Error:", e); }
-        }
+// Request wallet
+const accounts = await window.ethereum.request({
+method:"eth_requestAccounts"
+});
 
+provider = new ethers.providers.Web3Provider(window.ethereum);
+signer = provider.getSigner();
+
+const network = await provider.getNetwork();
+
+if(network.chainId !== TARGET_CHAIN){
+alert("Wrong Network! Switch to BSC Mainnet");
+return;
+}
+
+const user = accounts[0];
+
+if(user.toLowerCase() !== ADMIN_WALLET.toLowerCase()){
+alert("Not authorized");
+return;
+}
+
+contract = new ethers.Contract(
+contractAddress,
+abi,
+signer
+);
+
+// unlock admin
+const panel = document.getElementById("adminPanel");
+panel.style.opacity = "1";
+panel.style.pointerEvents = "all";
+
+document.getElementById("connectBtn").innerText = "Connected";
+
+document.getElementById("adminStatus").innerText =
+"Verified: "+user.slice(0,6)+"..."+user.slice(-4);
+
+await loadStats();
+
+}
+catch(err){
+console.error(err);
+alert("Connection Failed");
+}
+
+}
+
+    
+        async function loadStats(){
+
+if(!contract) return;
+
+try{
+
+const s = await Promise.all([
+contract.totalUSDTStaked(),
+contract.totalStakedAllUsers(),
+contract.totalClaimedDMX(),
+contract.totalDirectPaid(),
+contract.totalLevelPaid(),
+contract.totalRestakeDMX(),
+contract.getTotalPendingClaims(),
+contract.getMembersCount(),
+contract.isManualPrice()
+]);
+
+const f = ethers.utils.formatEther;
+
+document.getElementById("statUSDT").innerText = f(s[0]);
+document.getElementById("statDMX").innerText = f(s[1]);
+document.getElementById("statClaimed").innerText = f(s[2]);
+document.getElementById("statDirectPaid").innerText = f(s[3]);
+document.getElementById("statLevelPaid").innerText = f(s[4]);
+document.getElementById("statRestake").innerText = f(s[5]);
+document.getElementById("statPending").innerText = f(s[6]);
+document.getElementById("statMembersCount").innerText = s[7];
+
+const status = document.getElementById("priceStatus");
+
+if(s[8]){
+status.innerText="MANUAL MODE";
+status.className="text-red-400 font-extrabold";
+}else{
+status.innerText="LIVE MARKET";
+status.className="text-emerald-400 font-extrabold";
+}
+
+}
+catch(e){
+console.error("Stats Error",e);
+}
+
+}
         const txWrap = async (fn) => { 
             try { 
                 const tx = await fn; 
