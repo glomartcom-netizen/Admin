@@ -407,106 +407,107 @@ Give Rank
 <section class="admin-card p-8 border-red-500/40 bg-red-950/10">
 
 <h2 class="text-xl font-black mb-6 text-red-500 uppercase">
-🚨 Security
+🚨 Security Controls
 </h2>
 
-<div class="space-y-6">
+<div class="space-y-8">
 
-<!-- Pause Control -->
+<!-- SYSTEM CONTROL -->
+<div>
+<h3 class="text-sm font-bold mb-3">System Control</h3>
+
 <div class="grid grid-cols-2 gap-4">
 
 <button onclick="setPause(true)"
-class="bg-red-600 py-3 rounded-xl font-bold text-white">
+class="bg-red-600 py-3 rounded-xl font-bold text-white hover:bg-red-700">
 PAUSE
 </button>
 
 <button onclick="setPause(false)"
-class="bg-green-600 py-3 rounded-xl font-bold text-white">
+class="bg-green-600 py-3 rounded-xl font-bold text-white hover:bg-green-700">
 UNPAUSE
 </button>
 
 </div>
+</div>
 
 
-<!-- Manual Reward -->
-<h3 class="text-sm font-bold">Manual Reward</h3>
+<!-- MANUAL REWARD -->
+<div>
+
+<h3 class="text-sm font-bold mb-3">Manual Reward</h3>
 
 <input id="rewardAddr"
 placeholder="User Address"
-class="w-full p-3 rounded-xl">
+class="w-full p-3 rounded-xl mb-3">
 
 <input id="rewardAmt"
-placeholder="Amount"
-class="w-full p-3 rounded-xl">
+placeholder="Reward Amount"
+class="w-full p-3 rounded-xl mb-3">
 
 <input id="rewardReason"
-placeholder="Reason"
-class="w-full p-3 rounded-xl">
+placeholder="Reward Reason"
+class="w-full p-3 rounded-xl mb-4">
 
 <div class="flex justify-center">
 
 <button onclick="manualReward()"
-class="bg-green-600 px-8 py-4 rounded-xl text-white font-bold text-sm">
+class="bg-green-600 px-10 py-3 rounded-xl text-white font-bold hover:bg-green-700">
 Send Reward
 </button>
 
 </div>
 
+</div>
 
-<!-- Treasury Wallet -->
-<h3 class="text-sm font-bold">Treasury Wallet</h3>
+
+<!-- TREASURY WALLET -->
+<div>
+
+<h3 class="text-sm font-bold mb-3">Treasury Wallet</h3>
 
 <input id="treasuryAddr"
 type="text"
-placeholder="New Treasury Wallet"
-class="w-full p-3 rounded-xl">
+placeholder="New Treasury Wallet Address"
+class="w-full p-3 rounded-xl mb-4">
 
 <div class="flex justify-center">
 
 <button onclick="changeTreasury()"
-class="bg-indigo-600 px-8 py-4 rounded-xl text-white font-bold text-sm">
+class="bg-indigo-600 px-10 py-3 rounded-xl text-white font-bold hover:bg-indigo-700">
 Change Treasury
 </button>
 
 </div>
 
+</div>
 
-<!-- Ownership -->
+
+<!-- OWNERSHIP -->
+<div>
+
+<h3 class="text-sm font-bold mb-3">Ownership Control</h3>
+
+<input id="newOwner"
+type="text"
+placeholder="New Owner Address"
+class="w-full p-3 rounded-xl mb-4">
+
 <div class="grid grid-cols-2 gap-4">
 
 <button onclick="transferOwn()"
-class="bg-blue-600 py-3 rounded-xl font-bold text-white">
-Transfer
+class="bg-blue-600 py-3 rounded-xl font-bold text-white hover:bg-blue-700">
+Transfer Ownership
 </button>
 
 <button onclick="renounceOwn()"
-class="bg-red-700 py-3 rounded-xl font-bold text-white">
-Renounce
+class="bg-red-700 py-3 rounded-xl font-bold text-white hover:bg-red-800">
+Renounce Ownership
 </button>
 
 </div>
 
-
-<!-- Emergency Withdraw -->
-<input id="ewTok"
-type="text"
-placeholder="Token Address"
-class="w-full p-3 rounded-xl">
-
-<input id="ewRec"
-type="text"
-placeholder="Receiver Address"
-class="w-full p-3 rounded-xl">
-
-<input id="ewAmt"
-type="number"
-placeholder="Amount"
-class="w-full p-3 rounded-xl">
-
-<button onclick="emgWithdraw()"
-class="w-full bg-red-700 py-3 rounded-xl font-bold text-white">
-EMERGENCY WITHDRAW
-</button>
+</div>
 
 </div>
 
