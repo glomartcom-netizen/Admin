@@ -1,1 +1,414 @@
 
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DimeX | Master Admin V8.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <style>
+        /* Professional Dark Admin Palette with Depth */
+        body { 
+            background: linear-gradient(180deg, #020617 0%, #0b1220 100%);
+            color: #f8fafc; 
+            min-height: 100vh;
+        }
+        
+        /* Admin Cards - Enhanced Contrast */
+        .admin-card { 
+            background: #111827; 
+            border: 1px solid #1e293b; 
+            border-radius: 18px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        
+        /* Premium Glow Hover Effect */
+        .admin-card:hover { 
+            border-color: #38bdf8; 
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.15), 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+            transform: translateY(-4px);
+        }
+        
+        .gradient-text { 
+            background: linear-gradient(90deg, #38bdf8, #22d3ee); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        /* High Visibility Labels */
+        label { color: #94a3b8; font-weight: 700; letter-spacing: 0.05em; }
+        
+        /* Buttons with Better Feedback */
+        .btn-action { 
+            transition: all 0.2s ease; 
+            cursor: pointer; 
+            border-radius: 12px; 
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-action:active { transform: scale(0.96); }
+        
+        /* Inputs - Solid Contrast */
+        input { 
+            background: #020617 !important; 
+            border: 1px solid #334155 !important; 
+            color: #ffffff !important; 
+            outline: none; 
+            padding: 10px;
+            font-weight: 500;
+        }
+        input:focus { 
+            border-color: #38bdf8 !important; 
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); 
+        }
+        
+        /* Stats Glow */
+        .stat-value { text-shadow: 0 0 15px rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body class="font-sans pb-20">
+
+    <header class="p-6 border-b border-white/10 bg-[#111827]/80 sticky top-0 z-50 backdrop-blur-xl flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-black gradient-text tracking-tighter">DIMEX MASTER V8.1</h1>
+            <p id="adminStatus" class="text-[11px] text-blue-400 uppercase tracking-widest font-bold mt-1">● Awaiting Connection...</p>
+        </div>
+        <button id="connectBtn" class="bg-[#38bdf8] hover:bg-blue-400 text-black px-8 py-3 btn-action shadow-xl text-sm">Connect Admin</button>
+    </header>
+
+    <main id="adminPanel" class="p-6 max-w-[1440px] mx-auto opacity-20 pointer-events-none transition-opacity duration-700">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+            <div class="admin-card p-6 border-l-4 border-l-blue-500">
+                <p class="text-gray-400 text-xs uppercase font-black">Total Staked</p>
+                <div class="text-sm mt-2 font-mono">
+                    USDT: <span id="statUSDT" class="text-white font-black text-2xl stat-value">0.00</span><br>
+                    DMX: <span id="statDMX" class="text-cyan-400 font-black text-2xl stat-value">0.00</span>
+                </div>
+            </div>
+            <div class="admin-card p-6 border-l-4 border-l-emerald-500">
+                <p class="text-gray-400 text-xs uppercase font-black">Claims & Restake</p>
+                <div class="text-sm mt-2 font-mono">
+                    Restk: <span id="statRestake" class="text-emerald-400 font-black text-2xl stat-value">0.00</span><br>
+                    Claim: <span id="statClaimed" class="text-white font-black text-2xl stat-value">0.00</span>
+                </div>
+            </div>
+            <div class="admin-card p-6 border-l-4 border-l-purple-500">
+                <p class="text-gray-400 text-xs uppercase font-black">Total Payouts</p>
+                <div class="text-sm mt-2 font-mono">
+                    Direct: <span id="statDirectPaid" class="text-purple-400 font-black text-2xl stat-value">0.00</span><br>
+                    Level: <span id="statLevelPaid" class="text-white font-black text-2xl stat-value">0.00</span>
+                </div>
+            </div>
+            <div class="admin-card p-6 border-l-4 border-l-yellow-500">
+                <p class="text-yellow-500 text-xs uppercase font-black">Network Stats</p>
+                <div class="text-sm mt-2 font-mono">
+                    Pend: <span id="statPending" class="text-yellow-400 font-black text-2xl stat-value">0</span><br>
+                    Users: <span id="statMembersCount" class="text-white font-black text-2xl stat-value">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-8">
+                <section class="admin-card p-8">
+                    <h2 class="text-xl font-black mb-6 text-cyan-400 uppercase tracking-widest border-b border-white/5 pb-4">⚙️ Protocol Engine</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="text-[10px] uppercase block mb-2">Reward BPS (90 | 180 | 365 Days)</label>
+                                <div class="flex gap-2">
+                                    <input id="r90" type="number" placeholder="90d" class="w-full rounded-xl text-center">
+                                    <input id="r180" type="number" placeholder="180d" class="w-full rounded-xl text-center">
+                                    <input id="r365" type="number" placeholder="365d" class="w-full rounded-xl text-center">
+                                    <button onclick="setRates()" class="bg-slate-700 hover:bg-slate-600 px-4 btn-action text-xs text-white">Update</button>
+                                </div>
+                            </div>
+                            <div class="flex gap-3 items-end">
+                                <div class="flex-1"><label class="text-[10px] uppercase">Min Claim</label><input id="minClaim" type="number" class="w-full rounded-xl mt-1"></div>
+                                <div class="flex-1"><label class="text-[10px] uppercase">Income Cap</label><input id="incCap" type="number" class="w-full rounded-xl mt-1"></div>
+                                <button onclick="setLimits()" class="bg-blue-600 px-5 py-3 btn-action text-xs text-white shadow-lg shadow-blue-900/20">Set</button>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="text-[10px] uppercase block mb-2">Price Control: <span id="priceStatus" class="font-black ml-2 tracking-widest text-gray-500">SYNCING...</span></label>
+                                <div class="flex gap-2">
+                                    <input id="manPrice" type="number" step="0.000001" placeholder="USDT Value" class="flex-1 rounded-xl">
+                                    <button onclick="setPrice()" class="bg-cyan-900/40 text-cyan-300 border border-cyan-500/30 px-4 btn-action text-xs">Update</button>
+                                    <button onclick="togglePrice()" class="bg-slate-700 px-4 btn-action text-xs font-bold text-white">TOGGLE</button>
+                                </div>
+                            </div>
+                            <div class="flex gap-3 items-end">
+                                <div class="flex-1"><label class="text-[10px] uppercase">Direct %</label><input id="dirPct" type="number" class="w-full rounded-xl mt-1"></div>
+                                <div class="flex-1"><label class="text-[10px] uppercase">Restake %</label><input id="restkPct" type="number" class="w-full rounded-xl mt-1"></div>
+                                <button onclick="setBonuses()" class="bg-blue-600 px-5 py-3 btn-action text-xs text-white">Set</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="admin-card p-8">
+                    <h2 class="text-xl font-black mb-6 text-emerald-400 uppercase tracking-widest border-b border-white/5 pb-4">📊 Network Matrix</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <div class="flex gap-3 bg-black/40 p-4 rounded-2xl items-end border border-white/5">
+                                <div class="w-24"><label class="text-[10px] uppercase">Level #</label><input id="lvlId" type="number" class="w-full rounded-lg mt-1"></div>
+                                <div class="flex-1"><label class="text-[10px] uppercase">Comm BPS</label><input id="lvlBps" type="number" class="w-full rounded-lg mt-1"></div>
+                                <button onclick="setLevelPct()" class="bg-emerald-600 px-6 py-3 btn-action text-xs text-white">Save</button>
+                            </div>
+                            <div class="flex gap-3 bg-black/40 p-4 rounded-2xl items-end border border-white/5">
+                                <div class="w-24"><label class="text-[10px] uppercase">Level #</label><input id="volLvlId" type="number" class="w-full rounded-lg mt-1"></div>
+                                <div class="flex-1"><label class="text-[10px] uppercase">Min Vol</label><input id="volAmt" type="number" class="w-full rounded-lg mt-1"></div>
+                                <button onclick="setLevelVol()" class="bg-purple-600 px-6 py-3 btn-action text-xs text-white">Save</button>
+                            </div>
+                        </div>
+                        <div class="bg-black/40 p-6 rounded-2xl border border-white/5 space-y-4">
+                            <h3 class="text-xs font-black text-blue-400 uppercase tracking-widest">Global Broadcast</h3>
+                            <input id="annMsg" type="text" placeholder="Announcement text..." class="w-full rounded-lg text-sm">
+                            <input id="annImg" type="text" placeholder="Image URL (optional)" class="w-full rounded-lg text-sm">
+                            <button onclick="postAnn()" class="w-full bg-[#38bdf8] text-black py-3 btn-action text-xs font-black">Post to All Users</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="space-y-8">
+                <section class="admin-card p-8 border-t-4 border-t-yellow-500">
+                    <h2 class="text-xl font-black mb-6 text-yellow-500 uppercase tracking-widest">👤 User Control</h2>
+                    <div class="space-y-5">
+                        <input id="uAddr" type="text" placeholder="User Wallet Address 0x..." class="w-full p-4 rounded-2xl text-xs font-mono">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-2">
+                                <label class="text-[10px] uppercase block">Days</label>
+                                <input id="unlDays" type="number" placeholder="30" class="w-full text-sm rounded-xl">
+                                <button onclick="unlLevel()" class="w-full bg-blue-600 py-3 btn-action text-[10px] text-white">Unlock Level</button>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] uppercase block">Cap X</label>
+                                <input id="custCap" type="number" placeholder="10" class="w-full text-sm rounded-xl">
+                                <button onclick="setCustCap()" class="w-full bg-pink-600 py-3 btn-action text-[10px] text-white">Set Custom</button>
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t border-white/10 space-y-3">
+                            <input id="rankAmt" type="number" placeholder="DMX Amount" class="w-full text-sm rounded-xl">
+                            <input id="rankName" type="text" placeholder="Rank Name (e.g. Star)" class="w-full text-sm rounded-xl">
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="resCap()" class="bg-slate-800 py-3 text-[10px] btn-action border border-white/10 text-white">Reset 4X</button>
+                                <button onclick="giveRank()" class="bg-orange-600 py-3 text-[10px] btn-action text-white">Give Rank</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="admin-card p-8 border-red-500/40 bg-red-950/10">
+                    <h2 class="text-xl font-black mb-6 text-red-500 uppercase tracking-widest">🚨 Security</h2>
+                    <div class="space-y-4">
+                        <div class="flex gap-3">
+                            <button onclick="setPause(true)" class="flex-1 bg-red-600 py-3 text-[11px] btn-action text-white shadow-lg shadow-red-900/40">PAUSE SYSTEM</button>
+                            <button onclick="setPause(false)" class="flex-1 bg-slate-700 py-3 text-[11px] btn-action text-white">RESUME</button>
+                        </div>
+                        
+                        <div class="pt-4 border-t border-red-500/20 space-y-3">
+                            <p class="text-[10px] text-red-400 font-black uppercase">Ownership Transfer</p>
+                            <input id="newOwner" type="text" placeholder="New Admin Address" class="w-full p-3 text-xs rounded-xl">
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="transferOwn()" class="bg-blue-900/40 text-blue-300 border border-blue-500/30 py-2 text-[10px] btn-action">Transfer</button>
+                                <button onclick="renounceOwn()" class="bg-red-900/40 text-red-300 border border-red-500/30 py-2 text-[10px] btn-action">Renounce</button>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-red-500/20 space-y-3">
+                            <p class="text-[10px] text-gray-400 font-black uppercase">Asset Recovery</p>
+                            <input id="ewTok" type="text" placeholder="Token Contract" class="w-full p-2 text-xs rounded-lg">
+                            <input id="ewRec" type="text" placeholder="Recipient" class="w-full p-2 text-xs rounded-lg">
+                            <input id="ewAmt" type="number" placeholder="Amount" class="w-full p-2 text-xs rounded-lg">
+                            <button onclick="emgWithdraw()" class="w-full bg-red-900 text-white py-3 text-xs font-black btn-action">EMERGENCY WITHDRAW</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const ADMIN_WALLET = "0x53ba2d865be750d0e2d4d01bcb0a46ec1684c46b"; 
+        const TARGET_CHAIN = 56; // BSC Mainnet
+        const contractAddress = "YOUR_CONTRACT_ADDRESS"; // <--- இங்க உங்கள் அட்ரஸை மாற்றவும்
+        
+        const abi = [
+            "function owner() view returns (address)",
+            "function transferOwnership(address)",
+            "function renounceOwnership()",
+            "function totalUSDTStaked() view returns (uint256)",
+            "function totalStakedAllUsers() view returns (uint256)",
+            "function totalClaimedDMX() view returns (uint256)",
+            "function totalDirectPaid() view returns (uint256)",
+            "function totalLevelPaid() view returns (uint256)",
+            "function totalRestakeDMX() view returns (uint256)",
+            "function getTotalPendingClaims() view returns (uint256)",
+            "function getMembersCount() view returns (uint256)",
+            "function isManualPrice() view returns (bool)",
+            "function setDailyRewardPercent(uint256,uint256,uint256)", 
+            "function setMinimumClaim(uint256)",
+            "function setIncomeCap(uint256)",
+            "function setDirectPercent(uint256)",
+            "function setLevelPercent(uint256,uint256)",
+            "function setLevelUnlockVolume(uint256,uint256)",
+            "function setRestakeBonus(uint256)",
+            "function setManualPrice(uint256)",
+            "function toggleManualPrice(bool)",
+            "function unlockLevelManually(address,uint256)",
+            "function resetCap(address)",
+            "function giveRankReward(address,uint256,string)", 
+            "function emergencyWithdrawToken(address,address,uint256)",
+            "function pause()",
+            "function unpause()",
+            "function setCustomCap(address,uint256)",
+            "function postAnnouncement(string,string)"
+        ];
+
+        let provider, signer, contract;
+
+        async function connect() {
+            try {
+                if (!window.ethereum) return alert("MetaMask Install பண்ணுங்க!");
+                
+                const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                const network = await provider.getNetwork();
+
+                if (network.chainId !== TARGET_CHAIN) {
+                    alert("BSC Network-க்கு மாறுங்க!");
+                    return;
+                }
+
+                if (accounts[0].toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
+                    alert("Unauthorized Admin!");
+                    return;
+                }
+
+                contract = new ethers.Contract(contractAddress, abi, signer);
+                
+                document.getElementById('adminPanel').style.opacity = "1";
+                document.getElementById('adminPanel').style.pointerEvents = "all";
+                document.getElementById('connectBtn').innerText = "ONLINE";
+                document.getElementById('connectBtn').classList.replace('bg-[#38bdf8]', 'bg-emerald-500');
+                document.getElementById('adminStatus').innerText = "Verified: " + accounts[0].slice(0,6)+"..."+accounts[0].slice(-4);
+                
+                loadStats();
+                setInterval(loadStats, 30000); // 30 வினாடிக்கு ஒருமுறை அப்டேட்
+            } catch (err) {
+                console.error(err);
+                alert("Connection Error!");
+            }
+        }
+
+        async function loadStats() {
+            if(!contract) return;
+            try {
+                const s = await Promise.all([
+                    contract.totalUSDTStaked(), contract.totalStakedAllUsers(),
+                    contract.totalClaimedDMX(), contract.totalDirectPaid(),
+                    contract.totalLevelPaid(), contract.totalRestakeDMX(),
+                    contract.getTotalPendingClaims(), contract.getMembersCount(),
+                    contract.isManualPrice()
+                ]);
+                
+                const f = ethers.utils.formatEther;
+                document.getElementById('statUSDT').innerText = Number(f(s[0])).toLocaleString();
+                document.getElementById('statDMX').innerText = Number(f(s[1])).toLocaleString();
+                document.getElementById('statRestake').innerText = Number(f(s[5])).toLocaleString();
+                document.getElementById('statClaimed').innerText = Number(f(s[2])).toLocaleString();
+                document.getElementById('statDirectPaid').innerText = Number(f(s[3])).toLocaleString();
+                document.getElementById('statLevelPaid').innerText = Number(f(s[4])).toLocaleString();
+                document.getElementById('statPending').innerText = Number(f(s[6])).toLocaleString();
+                document.getElementById('statMembersCount').innerText = s[7].toString();
+                
+                const statusEl = document.getElementById('priceStatus');
+                if (s[8]) {
+                    statusEl.innerText = "MANUAL";
+                    statusEl.className = "text-red-500 font-black ml-2 tracking-widest";
+                } else {
+                    statusEl.innerText = "LIVE";
+                    statusEl.className = "text-emerald-500 font-black ml-2 tracking-widest";
+                }
+            } catch(e) { console.error("Stats Fail", e); }
+        }
+
+        const txWrap = async (fn) => { 
+            try { 
+                const tx = await fn; 
+                alert("Transaction Sent! Waiting...");
+                await tx.wait(); 
+                alert("Blockchain Success!"); 
+                loadStats(); 
+            } catch(e) { 
+                alert("Transaction Failed!"); 
+                console.error(e); 
+            } 
+        };
+
+        // --- functions ---
+        async function setRates() { txWrap(contract.setDailyRewardPercent(document.getElementById('r90').value, document.getElementById('r180').value, document.getElementById('r365').value)); }
+        
+        async function setLimits() {
+            if(document.getElementById('minClaim').value) await txWrap(contract.setMinimumClaim(ethers.utils.parseUnits(document.getElementById('minClaim').value, 18)));
+            if(document.getElementById('incCap').value) await txWrap(contract.setIncomeCap(document.getElementById('incCap').value));
+        }
+
+        async function setPrice() { txWrap(contract.setManualPrice(ethers.utils.parseUnits(document.getElementById('manPrice').value, 18))); }
+        
+        async function togglePrice() { 
+            const cur = await contract.isManualPrice(); 
+            txWrap(contract.toggleManualPrice(!cur)); 
+        }
+
+        async function setBonuses() { 
+            if(document.getElementById('dirPct').value) await txWrap(contract.setDirectPercent(document.getElementById('dirPct').value));
+            if(document.getElementById('restkPct').value) await txWrap(contract.setRestakeBonus(document.getElementById('restkPct').value));
+        }
+
+        async function setLevelPct() { txWrap(contract.setLevelPercent(document.getElementById('lvlId').value, document.getElementById('lvlBps').value)); }
+        
+        async function setLevelVol() { txWrap(contract.setLevelUnlockVolume(document.getElementById('volLvlId').value, ethers.utils.parseUnits(document.getElementById('volAmt').value, 18))); }
+
+        async function postAnn() { txWrap(contract.postAnnouncement(document.getElementById('annMsg').value, document.getElementById('annImg').value)); }
+
+        async function unlLevel() { txWrap(contract.unlockLevelManually(document.getElementById('uAddr').value, document.getElementById('unlDays').value || 30)); }
+        
+        async function setCustCap() { txWrap(contract.setCustomCap(document.getElementById('uAddr').value, document.getElementById('custCap').value)); }
+        
+        async function resCap() { txWrap(contract.resetCap(document.getElementById('uAddr').value)); }
+        
+        async function giveRank() { txWrap(contract.giveRankReward(document.getElementById('uAddr').value, ethers.utils.parseUnits(document.getElementById('rankAmt').value, 18), document.getElementById('rankName').value)); }
+
+        async function setPause(s) { txWrap(s ? contract.pause() : contract.unpause()); }
+
+        async function transferOwn() {
+            const addr = document.getElementById('newOwner').value;
+            if (confirm(`Transfer ownership to ${addr}?`)) txWrap(contract.transferOwnership(addr));
+        }
+
+        async function renounceOwn() {
+            if (confirm("DANGER: This will delete admin access forever! Confirm?")) txWrap(contract.renounceOwnership());
+        }
+
+        async function emgWithdraw() { 
+            txWrap(contract.emergencyWithdrawToken(
+                document.getElementById('ewTok').value, 
+                document.getElementById('ewRec').value, 
+                ethers.utils.parseUnits(document.getElementById('ewAmt').value, 18)
+            )); 
+        }
+
+        document.getElementById('connectBtn').onclick = connect;
+    </script>
+</body>
+</html>
