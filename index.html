@@ -232,7 +232,24 @@ Set
 </div>
 
 </section>
+    
+<section class="admin-card p-8">
 
+<h2 class="text-xl font-black text-purple-400 mb-6">
+👥 Members List
+</h2>
+
+<button onclick="loadMembers()"
+class="bg-purple-600 px-6 py-3 rounded-xl text-white font-bold mb-4">
+Load Members
+</button>
+
+<div id="membersBox"
+class="bg-black/40 p-4 rounded-xl text-sm font-mono max-h-80 overflow-y-auto">
+No Data
+</div>
+
+</section>
 
 <!-- MATRIX -->
 <section class="admin-card p-8">
@@ -409,11 +426,61 @@ UNPAUSE
 
 </div>
 
+<h3 class="text-sm font-bold">Manual Reward</h3>
 
-<input id="newOwner"
-type="text"
-placeholder="New Owner Address"
+<input id="rewardAddr"
+placeholder="User Address"
 class="w-full p-3 rounded-xl">
+
+<input id="rewardAmt"
+placeholder="Amount"
+class="w-full p-3 rounded-xl">
+
+<input id="rewardReason"
+placeholder="Reason"
+class="w-full p-3 rounded-xl">
+
+<button onclick="manualReward()"
+class="bg-green-600 py-3 rounded-xl text-white font-bold">
+Send Reward
+</button>
+    
+</div>
+
+<h3 class="text-sm font-bold">Manual Reward</h3>
+
+<input id="rewardAddr"
+placeholder="User Address"
+class="w-full p-3 rounded-xl">
+
+<input id="rewardAmt"
+placeholder="Amount"
+class="w-full p-3 rounded-xl">
+
+<input id="rewardReason"
+placeholder="Reason"
+class="w-full p-3 rounded-xl">
+
+<button onclick="manualReward()"
+class="bg-green-600 py-3 rounded-xl text-white font-bold">
+Send Reward
+</button>
+    
+</div>   
+    
+<h3 class="text-sm font-bold">Treasury Wallet</h3>
+
+<input id="treasuryAddr"
+type="text"
+placeholder="New Treasury Wallet"
+class="w-full p-3 rounded-xl">
+
+<button onclick="changeTreasury()"
+class="bg-indigo-600 py-3 rounded-xl text-white font-bold">
+Change Treasury
+</button>
+
+</div>
 
 <div class="grid grid-cols-2 gap-4">
 
@@ -599,6 +666,44 @@ EMERGENCY WITHDRAW
             if(document.getElementById('restkPct').value) await txWrap(contract.setRestakeBonus(document.getElementById('restkPct').value));
         }
 
+async function loadMembers(){
+
+const members = await contract.getMembersList();
+
+let html="";
+
+for(let i=0;i<members.length;i++){
+
+html += `<div>${i+1}. ${members[i]}</div>`;
+
+}
+
+document.getElementById("membersBox").innerHTML = html;
+
+        }
+
+        async function changeTreasury(){
+txWrap(contract.changeTreasury(
+document.getElementById("treasuryAddr").value
+));
+                }
+
+        async function manualReward(){
+
+const addr = document.getElementById("rewardAddr").value;
+const amt = document.getElementById("rewardAmt").value;
+const reason = document.getElementById("rewardReason").value;
+
+txWrap(
+contract.manualReward(
+addr,
+ethers.utils.parseUnits(amt,18),
+reason
+));
+
+        }
+        
+        
         async function setLevelPct() { txWrap(contract.setLevelPercent(document.getElementById('lvlId').value, document.getElementById('lvlBps').value)); }
         
         async function setLevelVol() { txWrap(contract.setLevelUnlockVolume(document.getElementById('volLvlId').value, ethers.utils.parseUnits(document.getElementById('volAmt').value, 18))); }
