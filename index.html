@@ -8,35 +8,92 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
         /* Professional Dark Admin Palette with Depth */
-        body { 
-            background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
-            color: white; 
-            min-height: 100vh; /* Fixed: 100 screen to 100vh */
-        }
-        
-        .admin-card { 
-            background: #111827; 
-            border: 1px solid #334155; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
-        
-        /* Premium Glow Effect on Hover */
-        .admin-card:hover { 
-            border-color: #38bdf8; 
-            box-shadow: 0 0 0 1px #38bdf8, 0 10px 25px -5px rgba(0, 0, 0, 0.6);
-            transform: translateY(-2px);
-        }
-        
-        .gradient-text { background: linear-gradient(90deg, #38bdf8, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .btn-action { transition: all 0.2s ease; cursor: pointer; border-radius: 0.75rem; font-weight: bold; }
-        .btn-action:active { transform: scale(0.95); }
-        
-        input { background: #1e293b !important; border: 1px solid #334155 !important; color: white !important; outline: none; padding: 8px; }
-        input:focus { border-color: #38bdf8 !important; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
-        
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0b1220; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        /* DIMEX Professional Dark Admin Theme */
+
+body{
+background:linear-gradient(180deg,#020617,#0b1220);
+color:white;
+min-height:100vh;
+}
+
+/* Admin Cards */
+
+.admin-card{
+background:#111827;
+border:1px solid #334155;
+border-radius:18px;
+box-shadow:0 5px 20px rgba(0,0,0,0.4);
+transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Glow Hover Effect */
+
+.admin-card:hover{
+border-color:#38bdf8;
+box-shadow:
+0 0 0 1px #38bdf8,
+0 10px 25px rgba(0,0,0,0.7),
+0 0 25px rgba(56,189,248,0.35);
+transform:translateY(-3px);
+}
+
+/* Gradient Title */
+
+.gradient-text{
+background:linear-gradient(90deg,#38bdf8,#22d3ee);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+/* Buttons */
+
+.btn-action{
+transition:all 0.2s ease;
+cursor:pointer;
+border-radius:12px;
+font-weight:bold;
+box-shadow:0 0 10px rgba(56,189,248,0.2);
+}
+
+.btn-action:hover{
+transform:translateY(-1px);
+box-shadow:0 0 15px rgba(56,189,248,0.45);
+}
+
+.btn-action:active{
+transform:scale(0.95);
+}
+
+/* Inputs */
+
+input{
+background:#020617 !important;
+border:1px solid #334155 !important;
+color:white !important;
+outline:none;
+padding:8px;
+border-radius:8px;
+}
+
+input:focus{
+border-color:#38bdf8 !important;
+box-shadow:0 0 0 2px rgba(56,189,248,0.25);
+}
+
+/* Scrollbar */
+
+::-webkit-scrollbar{
+width:6px;
+}
+
+::-webkit-scrollbar-track{
+background:#020617;
+}
+
+::-webkit-scrollbar-thumb{
+background:#334155;
+border-radius:10px;
+}
     </style>
 </head>
 <body class="font-sans pb-20">
@@ -231,20 +288,45 @@
         let provider, signer, contract;
 
         async function connect() {
-            if (!window.ethereum) return alert("Please install MetaMask");
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            const network = await provider.getNetwork();
-            if (network.chainId !== TARGET_CHAIN) { alert(`Wrong Network! Switch to BSC (ID: ${TARGET_CHAIN})`); return; }
-            const accounts = await provider.send("eth_requestAccounts", []);
-            if (accounts[0].toLowerCase() !== ADMIN_WALLET.toLowerCase()) { alert("Not authorized."); return; }
-            signer = provider.getSigner();
-            contract = new ethers.Contract(contractAddress, abi, signer);
-            document.getElementById('adminPanel').style.opacity = "1";
-            document.getElementById('adminPanel').style.pointerEvents = "all";
-            document.getElementById('connectBtn').innerText = "Connected";
-            document.getElementById('adminStatus').innerText = "Verified: " + accounts[0].slice(0,6)+"..."+accounts[0].slice(-4);
-            loadStats();
-        }
+
+    if (!window.ethereum) {
+        alert("Please install MetaMask");
+        return;
+    }
+
+    // 1️⃣ Request wallet connection first
+    const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts"
+    });
+
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    const network = await provider.getNetwork();
+
+    // 2️⃣ Network check
+    if (network.chainId !== TARGET_CHAIN) {
+        alert(`Wrong Network! Switch to BSC (ID: ${TARGET_CHAIN})`);
+        return;
+    }
+
+    // 3️⃣ Admin wallet check
+    if (accounts[0].toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
+        alert("Not authorized.");
+        return;
+    }
+
+    signer = provider.getSigner();
+    contract = new ethers.Contract(contractAddress, abi, signer);
+
+    document.getElementById('adminPanel').style.opacity = "1";
+    document.getElementById('adminPanel').style.pointerEvents = "all";
+
+    document.getElementById('connectBtn').innerText = "Connected";
+
+    document.getElementById('adminStatus').innerText =
+        "Verified: " + accounts[0].slice(0,6) + "..." + accounts[0].slice(-4);
+
+    loadStats();
+}
 
         async function loadStats() {
             try {
