@@ -232,12 +232,18 @@ Set
 </div>
 
 </section>
-    
+
+<!-- MEMBERS -->
+
 <section class="admin-card p-8">
 
 <h2 class="text-xl font-black text-purple-400 mb-6">
 👥 Members List
 </h2>
+
+<div class="mb-3 text-sm text-gray-300">
+Total Members: <span id="memberCount" class="text-white font-bold">0</span>
+</div>
 
 <button onclick="loadMembers()"
 class="bg-purple-600 px-6 py-3 rounded-xl text-white font-bold mb-4">
@@ -245,6 +251,43 @@ Load Members
 </button>
 
 <div id="membersBox"
+class="bg-black/40 p-4 rounded-xl text-sm font-mono max-h-80 overflow-y-auto">
+No Data
+</div>
+
+<div class="mt-6 space-y-3">
+
+<input id="searchUser"
+placeholder="Search Wallet Address"
+class="w-full p-3 rounded-xl">
+
+<button onclick="searchUser()"
+class="bg-blue-600 px-6 py-2 rounded-xl text-white font-bold">
+Search User
+</button>
+
+<div id="userResult"
+class="text-sm text-gray-300"></div>
+
+</div>
+
+</section>
+
+
+<!-- TOP LEADERS -->
+
+<section class="admin-card p-8">
+
+<h2 class="text-xl font-black text-yellow-400 mb-6">
+🏆 Top 10 Leaders
+</h2>
+
+<button onclick="loadTopLeaders()"
+class="bg-yellow-600 px-6 py-3 rounded-xl text-white font-bold mb-4">
+Load Leaders
+</button>
+
+<div id="leadersBox"
 class="bg-black/40 p-4 rounded-xl text-sm font-mono max-h-80 overflow-y-auto">
 No Data
 </div>
@@ -673,8 +716,67 @@ html += `<div>${i+1}. ${members[i]}</div>`;
 
 document.getElementById("membersBox").innerHTML = html;
 
-        }
+loadMembersCount();
 
+}
+
+
+async function loadMembersCount(){
+
+const count = await contract.getMembersCount();
+
+document.getElementById("memberCount").innerText = count;
+
+}
+
+
+async function searchUser(){
+
+const addr = document.getElementById("searchUser").value;
+
+const data = await contract.getFullDashboardStats(addr);
+
+document.getElementById("userResult").innerHTML =
+`Total Staked: ${ethers.utils.formatEther(data[0])} DMX<br>
+Total Earned: ${ethers.utils.formatEther(data[1])} DMX<br>
+Direct Income: ${ethers.utils.formatEther(data[2])} DMX<br>
+Level Income: ${ethers.utils.formatEther(data[3])} DMX`;
+
+}
+
+
+async function loadTopLeaders(){
+
+const members = await contract.getMembersList();
+
+let arr = [];
+
+const limit = Math.min(members.length,100);
+
+for(let i=0;i<limit;i++){
+
+const data = await contract.getFullDashboardStats(members[i]);
+
+arr.push({
+addr:members[i],
+stake:parseFloat(ethers.utils.formatEther(data[0]))
+});
+
+}
+
+arr.sort((a,b)=>b.stake-a.stake);
+
+let html="";
+
+for(let i=0;i<10 && i<arr.length;i++){
+
+html += `<div>${i+1}. ${arr[i].addr} — ${arr[i].stake} DMX</div>`;
+
+}
+
+document.getElementById("leadersBox").innerHTML = html;
+
+}
         async function changeTreasury(){
 txWrap(contract.changeTreasury(
 document.getElementById("treasuryAddr").value
