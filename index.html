@@ -601,9 +601,10 @@ Transfer Ownership
             "function pause()",
             "function unpause()",
             "function setCustomCap(address,uint256)",
-            "function postAnnouncement(string,string)",
-            "function getMembersList() view returns(address[])"
-        ];
+"function changeTreasury(address)",
+"function postAnnouncement(string,string)",
+"function getFullDashboardStats(address) view returns(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)",
+"function getMembersList() view returns(address[])"
 
         let provider, signer, contract;
 
@@ -760,6 +761,7 @@ Level Income: ${ethers.utils.formatEther(data[3])} DMX`;
 alert("User not found");
 
         }
+}
 
 
 async function loadTopLeaders(){
