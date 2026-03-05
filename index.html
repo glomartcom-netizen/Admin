@@ -740,7 +740,14 @@ document.getElementById("memberCount").innerText = count;
 
 async function searchUser(){
 
+try{
+
 const addr = document.getElementById("searchUser").value;
+
+if(!ethers.utils.isAddress(addr)){
+alert("Invalid wallet address");
+return;
+}
 
 const data = await contract.getFullDashboardStats(addr);
 
@@ -750,7 +757,11 @@ Total Earned: ${ethers.utils.formatEther(data[1])} DMX<br>
 Direct Income: ${ethers.utils.formatEther(data[2])} DMX<br>
 Level Income: ${ethers.utils.formatEther(data[3])} DMX`;
 
-}
+}catch(e){
+
+alert("User not found");
+
+        }
 
 
 async function loadTopLeaders(){
