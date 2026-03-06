@@ -600,17 +600,17 @@ Transfer Ownership
             "function pause()",
             "function unpause()",
             "function setCustomCap(address,uint256)",
-"function changeTreasury(address)",
-"function postAnnouncement(string,string)",
-"function getFullDashboardStats(address) view returns(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)",
-"function getMembersList() view returns(address[])"
+            "function changeTreasury(address)",
+            "function postAnnouncement(string,string)",
+            "function getFullDashboardStats(address) view returns(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)",
+            "function getMembersList() view returns(address[])"
+             ];  
 
         let provider, signer, contract;
 
         async function connect() {
             try {
                 if (!window.ethereum) return alert("MetaMask Install பண்ணுங்க!");
-                
                 const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 signer = provider.getSigner();
@@ -627,20 +627,16 @@ Transfer Ownership
                 }
 
                 contract = new ethers.Contract(contractAddress, abi, signer);
-
-document.getElementById('adminPanel').style.opacity = "1";
-document.getElementById('adminPanel').style.pointerEvents = "all";
-document.getElementById('connectBtn').innerText = "ONLINE";
-document.getElementById('connectBtn').classList.replace('bg-[#38bdf8]', 'bg-emerald-500');
-document.getElementById('adminStatus').innerText =
-"Verified: " + accounts[0].slice(0,6)+"..."+accounts[0].slice(-4);
-
-loadStats(); // only one time load
-
-} catch (err) {
-console.error(err);
-alert("Connection Error!");
-}
+                document.getElementById('adminPanel').style.opacity = "1";
+                document.getElementById('adminPanel').style.pointerEvents = "all";
+                document.getElementById('connectBtn').innerText = "ONLINE";
+                document.getElementById('connectBtn').style.backgroundColor = "#10b981";
+                document.getElementById('adminStatus').innerText = "Verified: " + accounts[0].slice(0,6)+"..."+accounts[0].slice(-4);
+                loadStats();
+            } catch (err) {
+                console.error(err);
+                alert("Connection Error!");
+            }
         }
 
         async function loadStats() {
