@@ -555,31 +555,127 @@ class="bg-indigo-600 px-10 py-3 rounded-xl text-white font-bold hover:bg-indigo-
 Change Treasury
 </button>
 
-</div>
+<!-- SECURITY -->
+<section class="admin-card p-8 border-red-500/40 bg-red-950/10">
 
-</div>
+<h2 class="text-xl font-black mb-6 text-red-500 uppercase">
+🚨 Security Controls
+</h2>
 
+<div class="space-y-8">
 
-<!-- OWNERSHIP -->
+<!-- SYSTEM CONTROL -->
 <div>
+<h3 class="text-sm font-bold mb-3 text-red-400 uppercase">
+System Control
+</h3>
 
-<h3 class="text-sm font-bold mb-3">Ownership Control</h3>
+<div class="grid grid-cols-2 gap-4">
 
-<input id="newOwner"
-type="text"
-placeholder="New Owner Address"
+<button onclick="setPause(true)"
+class="bg-red-600 py-3 rounded-xl font-bold text-white hover:bg-red-700">
+Pause Contract
+</button>
+
+<button onclick="setPause(false)"
+class="bg-green-600 py-3 rounded-xl font-bold text-white hover:bg-green-700">
+Unpause Contract
+</button>
+
+</div>
+</div>
+
+
+<!-- EMERGENCY TOKEN RECOVERY -->
+<div class="border-t border-white/10 pt-6">
+
+<h3 class="text-sm font-bold mb-3 text-yellow-400 uppercase">
+Emergency Asset Recovery
+</h3>
+
+<input id="ewTok"
+placeholder="Token Contract Address"
+class="w-full p-3 rounded-xl mb-2">
+
+<input id="ewRec"
+placeholder="Receiver Wallet Address"
+class="w-full p-3 rounded-xl mb-2">
+
+<input id="ewAmt"
+placeholder="Amount"
 class="w-full p-3 rounded-xl mb-4">
 
-<div class="flex justify-center">
-
-<button onclick="transferOwn()"
-class="bg-blue-600 px-10 py-3 rounded-xl font-bold text-white hover:bg-blue-700">
-Transfer Ownership
+<button onclick="emgWithdraw()"
+class="w-full bg-red-600 py-3 rounded-xl font-bold text-white hover:bg-red-700">
+Recover Tokens
 </button>
 
 </div>
 
+
+<!-- MANUAL REWARD -->
+<div class="border-t border-white/10 pt-6">
+
+<h3 class="text-sm font-bold mb-3 text-green-400 uppercase">
+Manual Reward
+</h3>
+
+<input id="rewardAddr"
+placeholder="User Wallet Address"
+class="w-full p-3 rounded-xl mb-2">
+
+<input id="rewardAmt"
+placeholder="Reward Amount (DMX)"
+class="w-full p-3 rounded-xl mb-2">
+
+<input id="rewardReason"
+placeholder="Reward Reason"
+class="w-full p-3 rounded-xl mb-4">
+
+<button onclick="manualReward()"
+class="w-full bg-green-600 py-3 rounded-xl font-bold text-white hover:bg-green-700">
+Send Reward
+</button>
+
 </div>
+
+
+<!-- TREASURY WALLET -->
+<div class="border-t border-white/10 pt-6">
+
+<h3 class="text-sm font-bold mb-3 text-indigo-400 uppercase">
+Treasury Wallet
+</h3>
+
+<input id="treasuryAddr"
+type="text"
+placeholder="New Treasury Wallet Address"
+class="w-full p-3 rounded-xl mb-4">
+
+<button onclick="changeTreasury()"
+class="w-full bg-indigo-600 py-3 rounded-xl font-bold text-white hover:bg-indigo-700">
+Update Treasury Wallet
+</button>
+
+</div>
+
+
+<!-- OWNERSHIP CONTROL -->
+<div class="border-t border-white/10 pt-6">
+
+<h3 class="text-sm font-bold mb-3 text-blue-400 uppercase">
+Ownership Control
+</h3>
+
+<input id="newOwner"
+type="text"
+placeholder="New Owner Wallet Address"
+class="w-full p-3 rounded-xl mb-4">
+
+<button onclick="transferOwn()"
+class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white hover:bg-blue-700">
+Transfer Ownership
+</button>
 
 </div>
 
