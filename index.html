@@ -775,9 +775,10 @@ const data = await contract.getFullDashboardStats(addr);
 document.getElementById("userResult").innerHTML =
 `Total Staked: ${ethers.utils.formatEther(data[0])} DMX<br>
 Total Earned: ${ethers.utils.formatEther(data[1])} DMX<br>
-Direct Income: ${ethers.utils.formatEther(data[2])} DMX<br>
-Level Income: ${ethers.utils.formatEther(data[3])} DMX`;
-
+Direct Bonus: ${ethers.utils.formatEther(data[2])} DMX<br>
+Level Bonus: ${ethers.utils.formatEther(data[3])} DMX<br>
+Income Cap: ${data[8]}X`;
+    
 }catch(e){
 
 alert("User not found");
