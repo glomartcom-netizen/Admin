@@ -885,16 +885,18 @@ async function loadLeaderboards(){
 
 try{
 
-document.getElementById("topStakers").innerHTML="Loading...";
-document.getElementById("topTeam").innerHTML="Loading...";
-document.getElementById("topDirect").innerHTML="Loading...";
-document.getElementById("topEarners").innerHTML="Loading...";
+document.getElementById("topStakers").innerHTML="Loading Leaderboards...";
+document.getElementById("topTeam").innerHTML="";
+document.getElementById("topDirect").innerHTML="";
+document.getElementById("topEarners").innerHTML="";
 
 const members = await contract.getMembersList();
 
 let arr = [];
 
 for(let i=0;i<members.length;i++){
+
+await new Promise(r=>setTimeout(r,25));
 
 const data = await contract.getFullDashboardStats(members[i]);
 
