@@ -120,12 +120,22 @@ Level:
 
 <div class="admin-card p-6 border-l-4 border-l-yellow-500">
 <p class="text-yellow-500 text-xs uppercase font-black">Network Stats</p>
+
 <div class="text-sm mt-3 font-mono">
+
 Pending:
 <span id="statPending" class="text-yellow-400 font-black text-lg stat-value">0</span>
+
 <br>
+
 Users:
 <span id="statMembersCount" class="text-white font-black text-lg stat-value">0</span>
+
+<br>
+
+DMX Balance:
+<span id="statContractDMX" class="text-cyan-300 font-black text-lg stat-value">0</span>
+
 </div>
 </div>
 
@@ -726,7 +736,9 @@ Transfer Ownership
             "function changeTreasury(address)",
             "function postAnnouncement(string,string)",
             "function getFullDashboardStats(address) view returns(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)",
-            "function getMembersList() view returns(address[])"
+            "function getMembersList() view returns(address[])",
+            "function dmx() view returns (address)",
+            "function balanceOf(address) view returns (uint256)"
              ];  
 
         let provider, signer, contract;
@@ -763,36 +775,87 @@ Transfer Ownership
         }
 
         async function loadStats() {
-            if(!contract) return;
-            try {
-                const s = await Promise.all([
-                    contract.totalUSDTStaked(), contract.totalStakedAllUsers(),
-                    contract.totalClaimedDMX(), contract.totalDirectPaid(),
-                    contract.totalLevelPaid(), contract.totalRestakeDMX(),
-                    contract.getTotalPendingClaims(), contract.getMembersCount(),
-                    contract.isManualPrice()
-                ]);
-                
-                const f = ethers.utils.formatEther;
-                document.getElementById('statUSDT').innerText = Number(f(s[0])).toLocaleString();
-                document.getElementById('statDMX').innerText = Number(f(s[1])).toLocaleString();
-                document.getElementById('statRestake').innerText = Number(f(s[5])).toLocaleString();
-                document.getElementById('statClaimed').innerText = Number(f(s[2])).toLocaleString();
-                document.getElementById('statDirectPaid').innerText = Number(f(s[3])).toLocaleString();
-                document.getElementById('statLevelPaid').innerText = Number(f(s[4])).toLocaleString();
-                document.getElementById('statPending').innerText = Number(f(s[6])).toLocaleString();
-                document.getElementById('statMembersCount').innerText = s[7].toString();
-                
-                const statusEl = document.getElementById('priceStatus');
-                if (s[8]) {
-                    statusEl.innerText = "MANUAL";
-                    statusEl.className = "text-red-500 font-black ml-2 tracking-widest";
-                } else {
-                    statusEl.innerText = "LIVE";
-                    statusEl.className = "text-emerald-500 font-black ml-2 tracking-widest";
-                }
-            } catch(e) { console.error("Stats Fail", e); }
+
+    if(!contract) return;
+
+    try {
+
+        const s = await Promise.all([
+            contract.totalUSDTStaked(),
+            contract.totalStakedAllUsers(),
+            contract.totalClaimedDMX(),
+            contract.totalDirectPaid(),
+            contract.totalLevelPaid(),
+            contract.totalRestakeDMX(),
+            contract.getMembersCount(),
+            contract.isManualPrice()
+        ]);
+
+        const f = ethers.utils.formatEther;
+
+        document.getElementById('statUSDT').innerText = Number(f(s[0])).toLocaleString();
+        document.getElementById('statDMX').innerText = Number(f(s[1])).toLocaleString();
+        document.getElementById('statRestake').innerText = Number(f(s[5])).toLocaleString();
+        document.getElementById('statClaimed').innerText = Number(f(s[2])).toLocaleString();
+        document.getElementById('statDirectPaid').innerText = Number(f(s[3])).toLocaleString();
+        document.getElementById('statLevelPaid').innerText = Number(f(s[4])).toLocaleString();
+
+        document.getElementById('statMembersCount').innerText = s[6].toString();
+
+        // CONTRACT DMX BALANCE
+try {
+
+const dmxAddr = await contract.dmx();
+
+const token = new ethers.Contract(
+dmxAddr,
+["function balanceOf(address) view returns(uint256)"],
+provider
+);
+
+const bal = await token.balanceOf(contractAddress);
+
+document.getElementById("statContractDMX").innerText =
+Number(ethers.utils.formatEther(bal)).toLocaleString();
+
+}catch(e){
+
+console.warn("DMX balance load error");
+
         }
+
+        const statusEl = document.getElementById('priceStatus');
+
+        if (s[7]) {
+            statusEl.innerText = "MANUAL";
+            statusEl.className = "text-red-500 font-black ml-2 tracking-widest";
+        } else {
+            statusEl.innerText = "LIVE";
+            statusEl.className = "text-emerald-500 font-black ml-2 tracking-widest";
+        }
+
+        // SAFE PENDING LOAD
+        let pending = 0;
+
+        try {
+            pending = await contract.getTotalPendingClaims();
+        } catch(e) {
+            console.warn("Pending calculation too large");
+            pending = 0;
+        }
+
+        document.getElementById('statPending').innerText =
+        Number(ethers.utils.formatEther(pending)).toLocaleString();
+
+    }
+
+    catch(e) {
+
+        console.error("Stats Fail", e);
+
+    }
+
+}
 
         const txWrap = async (fn) => { 
             try { 
