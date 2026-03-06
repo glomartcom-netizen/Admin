@@ -938,6 +938,7 @@ document.getElementById("memberCount").innerText = count;
 }
 
 
+// ---------- SEARCH USER ----------
 async function searchUser(){
 
 try{
@@ -952,23 +953,46 @@ return;
 const data = await contract.getFullDashboardStats(addr);
 
 document.getElementById("userResult").innerHTML =
-`Total Staked: ${ethers.utils.formatEther(data[0])} DMX<br>
-Total Earned: ${ethers.utils.formatEther(data[1])} DMX<br>
-Direct Bonus: ${ethers.utils.formatEther(data[2])} DMX<br>
-Level Bonus: ${ethers.utils.formatEther(data[3])} DMX<br>
-Income Cap: ${data[8]}X`;
+`<div class="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+
+<p>Total Staked: <span class="text-white">${ethers.utils.formatEther(data[0])} DMX</span></p>
+
+<p>Total Earned: <span class="text-white">${ethers.utils.formatEther(data[1])} DMX</span></p>
+
+<p>Direct Income: <span class="text-white">${ethers.utils.formatEther(data[2])} DMX</span></p>
+
+<p>Level Income: <span class="text-white">${ethers.utils.formatEther(data[3])} DMX</span></p>
+
+<p>Direct Business: <span class="text-white">${ethers.utils.formatEther(data[4])} DMX</span></p>
+
+<p>Team Business: <span class="text-white">${ethers.utils.formatEther(data[5])} DMX</span></p>
+
+<p>Claimable: <span class="text-white">${ethers.utils.formatEther(data[7])} DMX</span></p>
+
+<p class="text-yellow-400 font-bold">
+Income Cap: ${ethers.utils.formatEther(data[8])} DMX
+</p>
+
+</div>`;
     
 }catch(e){
 
 alert("User not found");
 
-        }
+}
+
 }
 
 
+// ---------- LOAD LEADERBOARDS ----------
 async function loadLeaderboards(){
 
 try{
+
+document.getElementById("topStakers").innerHTML="Loading...";
+document.getElementById("topTeam").innerHTML="Loading...";
+document.getElementById("topDirect").innerHTML="Loading...";
+document.getElementById("topEarners").innerHTML="Loading...";
 
 const members = await contract.getMembersList();
 
@@ -981,11 +1005,17 @@ const data = await contract.getFullDashboardStats(members[i]);
 arr.push({
 
 addr:members[i],
+
 stake:parseFloat(ethers.utils.formatEther(data[0])),
+
 earned:parseFloat(ethers.utils.formatEther(data[1])),
+
 directVol:parseFloat(ethers.utils.formatEther(data[4])),
+
 teamVol:parseFloat(ethers.utils.formatEther(data[5])),
+
 claimable:parseFloat(ethers.utils.formatEther(data[7])),
+
 cap:parseFloat(ethers.utils.formatEther(data[8]))
 
 });
@@ -993,8 +1023,11 @@ cap:parseFloat(ethers.utils.formatEther(data[8]))
 }
 
 renderBoard("topStakers",[...arr].sort((a,b)=>b.stake-a.stake));
+
 renderBoard("topTeam",[...arr].sort((a,b)=>b.teamVol-a.teamVol));
+
 renderBoard("topDirect",[...arr].sort((a,b)=>b.directVol-a.directVol));
+
 renderBoard("topEarners",[...arr].sort((a,b)=>b.earned-a.earned));
 
 }
@@ -1007,72 +1040,112 @@ console.error("Leaderboard load error",e);
 
 }
 
-        function renderBoard(id,data){
+        // ---------- RENDER BOARD ----------
+function renderBoard(id,data){
 
 let html="";
 
 for(let i=0;i<10 && i<data.length;i++){
 
 html+=`
+
 <div class="p-3 border-b border-white/10">
 
 <div class="text-cyan-400 font-bold">
-${i+1}. ${data[i].addr.slice(0,6)}...${data[i].addr.slice(-4)}
+
+${i+1}. 
+<a href="https://bscscan.com/address/${data[i].addr}" target="_blank">
+
+${data[i].addr.slice(0,6)}...${data[i].addr.slice(-4)}
+
+</a>
+
 </div>
 
 <div class="text-xs text-gray-300">
+
 Stake: ${data[i].stake.toLocaleString()} DMX
+
 </div>
 
 <div class="text-xs text-gray-300">
+
 Direct Business: ${data[i].directVol.toLocaleString()} DMX
+
 </div>
 
 <div class="text-xs text-gray-300">
+
 Team Business: ${data[i].teamVol.toLocaleString()} DMX
+
 </div>
 
 <div class="text-xs text-gray-300">
+
 Earned: ${data[i].earned.toLocaleString()} DMX
+
 </div>
 
 <div class="text-xs text-gray-300">
+
 Claimable: ${data[i].claimable.toLocaleString()} DMX
+
 </div>
 
 <div class="text-xs text-yellow-400">
+
 Cap: ${data[i].cap.toLocaleString()} DMX
+
 </div>
 
 </div>
+
 `;
 
 }
 
 document.getElementById(id).innerHTML = html || "No data";
 
-        }
-        
-        async function changeTreasury(){
-txWrap(contract.changeTreasury(
-document.getElementById("treasuryAddr").value
-));
-                }
+}
 
-        async function manualReward(){
+        
+        // ---------- CHANGE TREASURY ----------
+async function changeTreasury(){
+
+txWrap(contract.changeTreasury(
+
+document.getElementById("treasuryAddr").value
+
+));
+
+}
+
+
+
+// ---------- MANUAL REWARD ----------
+async function manualReward(){
 
 const addr = document.getElementById("rewardAddr").value;
+
 const amt = document.getElementById("rewardAmt").value;
+
 const reason = document.getElementById("rewardReason").value;
 
 txWrap(
-contract.manualReward(
-addr,
-ethers.utils.parseUnits(amt,18),
-reason
-));
 
-        }
+contract.manualReward(
+
+addr,
+
+ethers.utils.parseUnits(amt,18),
+
+reason
+
+)
+
+);
+
+}
         
         
         async function setLevelPct() { txWrap(contract.setLevelPercent(document.getElementById('lvlId').value, document.getElementById('lvlBps').value)); }
