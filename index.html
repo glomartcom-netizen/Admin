@@ -294,19 +294,39 @@ class="text-sm text-gray-300"></div>
 <!-- TOP LEADERS -->
 
 <section class="admin-card p-8">
+<section class="admin-card p-8">
 
 <h2 class="text-xl font-black text-yellow-400 mb-6">
-🏆 Top 10 Leaders
+🏆 Leaderboards
 </h2>
 
-<button onclick="loadTopLeaders()"
+<button onclick="loadLeaderboards()"
 class="bg-yellow-600 px-6 py-3 rounded-xl text-white font-bold mb-4">
-Load Leaders
+Load Leaderboards
 </button>
 
-<div id="leadersBox"
-class="bg-black/40 p-4 rounded-xl text-sm font-mono max-h-80 overflow-y-auto">
-No Data
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+<div>
+<h3 class="text-cyan-400 font-bold mb-2">Top Stakers</h3>
+<div id="topStakers" class="bg-black/40 p-4 rounded-xl text-sm font-mono max-h-80 overflow-y-auto"></div>
+</div>
+
+<div>
+<h3 class="text-green-400 font-bold mb-2">Top Team Builders</h3>
+<div id="topTeam" class="bg-black/40 p-4 rounded-xl text-sm font-mono max-h-80 overflow-y-auto"></div>
+</div>
+
+<div>
+<h3 class="text-orange-400 font-bold mb-2">Top Direct Sponsors</h3>
+<div id="topDirect" class="bg-black/40 p-4 rounded-xl text-sm font-mono max-h-80 overflow-y-auto"></div>
+</div>
+
+<div>
+<h3 class="text-purple-400 font-bold mb-2">Top Earners</h3>
+<div id="topEarners" class="bg-black/40 p-4 rounded-xl text-sm font-mono max-h-80 overflow-y-auto"></div>
+</div>
+
 </div>
 
 </section>
@@ -946,38 +966,93 @@ alert("User not found");
 }
 
 
-async function loadTopLeaders(){
+async function loadLeaderboards(){
+
+try{
 
 const members = await contract.getMembersList();
 
 let arr = [];
 
-const limit = Math.min(members.length,100);
-
-for(let i=0;i<limit;i++){
+for(let i=0;i<members.length;i++){
 
 const data = await contract.getFullDashboardStats(members[i]);
 
 arr.push({
+
 addr:members[i],
-stake:parseFloat(ethers.utils.formatEther(data[0]))
+stake:parseFloat(ethers.utils.formatEther(data[0])),
+earned:parseFloat(ethers.utils.formatEther(data[1])),
+directVol:parseFloat(ethers.utils.formatEther(data[4])),
+teamVol:parseFloat(ethers.utils.formatEther(data[5])),
+claimable:parseFloat(ethers.utils.formatEther(data[7])),
+cap:parseFloat(ethers.utils.formatEther(data[8]))
+
 });
 
 }
 
-arr.sort((a,b)=>b.stake-a.stake);
+renderBoard("topStakers",[...arr].sort((a,b)=>b.stake-a.stake));
+renderBoard("topTeam",[...arr].sort((a,b)=>b.teamVol-a.teamVol));
+renderBoard("topDirect",[...arr].sort((a,b)=>b.directVol-a.directVol));
+renderBoard("topEarners",[...arr].sort((a,b)=>b.earned-a.earned));
+
+}
+
+catch(e){
+
+console.error("Leaderboard load error",e);
+
+}
+
+}
+
+        function renderBoard(id,data){
 
 let html="";
 
-for(let i=0;i<10 && i<arr.length;i++){
+for(let i=0;i<10 && i<data.length;i++){
 
-html += `<div>${i+1}. ${arr[i].addr} — ${arr[i].stake} DMX</div>`;
+html+=`
+<div class="p-3 border-b border-white/10">
+
+<div class="text-cyan-400 font-bold">
+${i+1}. ${data[i].addr.slice(0,6)}...${data[i].addr.slice(-4)}
+</div>
+
+<div class="text-xs text-gray-300">
+Stake: ${data[i].stake.toLocaleString()} DMX
+</div>
+
+<div class="text-xs text-gray-300">
+Direct Business: ${data[i].directVol.toLocaleString()} DMX
+</div>
+
+<div class="text-xs text-gray-300">
+Team Business: ${data[i].teamVol.toLocaleString()} DMX
+</div>
+
+<div class="text-xs text-gray-300">
+Earned: ${data[i].earned.toLocaleString()} DMX
+</div>
+
+<div class="text-xs text-gray-300">
+Claimable: ${data[i].claimable.toLocaleString()} DMX
+</div>
+
+<div class="text-xs text-yellow-400">
+Cap: ${data[i].cap.toLocaleString()} DMX
+</div>
+
+</div>
+`;
 
 }
 
-document.getElementById("leadersBox").innerHTML = html;
+document.getElementById(id).innerHTML = html || "No data";
 
-}
+        }
+        
         async function changeTreasury(){
 txWrap(contract.changeTreasury(
 document.getElementById("treasuryAddr").value
