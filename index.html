@@ -584,42 +584,42 @@ Transfer Ownership
         const contractAddress = "YOUR_CONTRACT_ADDRESS"; // <--- இங்க உங்கள் அட்ரஸை மாற்றவும்
         
         const abi = [
-            "function owner() view returns (address)",
-            "function transferOwnership(address)",
-            "function renounceOwnership()",
-            "function totalUSDTStaked() view returns (uint256)",
-            "function totalStakedAllUsers() view returns (uint256)",
-            "function totalClaimedDMX() view returns (uint256)",
-            "function totalDirectPaid() view returns (uint256)",
-            "function totalLevelPaid() view returns (uint256)",
-            "function totalRestakeDMX() view returns (uint256)",
-            "function getTotalPendingClaims() view returns (uint256)",
-            "function getMembersCount() view returns (uint256)",
-            "function isManualPrice() view returns (bool)",
-            "function setDailyRewardPercent(uint256,uint256,uint256)", 
-            "function setMinimumClaim(uint256)",
-            "function setIncomeCap(uint256)",
-            "function setDirectPercent(uint256)",
-            "function setLevelPercent(uint256,uint256)",
-            "function setLevelUnlockVolume(uint256,uint256)",
-            "function setRestakeBonus(uint256)",
-            "function setManualPrice(uint256)",
-            "function toggleManualPrice(bool)",
-            "function unlockLevelManually(address,uint256)",
-            "function resetCap(address)",
-            "function giveRankReward(address,uint256,string)", 
-            "function emergencyWithdrawToken(address,address,uint256)",
-            "function pause()",
-            "function unpause()",
-            "function setCustomCap(address,uint256)",
-            "function changeTreasury(address)",
-            "function postAnnouncement(string,string)",
-            "function getFullDashboardStats(address) view returns(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)",
-            "function getMembersList() view returns(address[])",
-            "function dmx() view returns (address)",
-            "function balanceOf(address) view returns (uint256)",
-            "function setMinStake(uint256)"
-             ];  
+    "function owner() view returns (address)",
+    "function transferOwnership(address)",
+    "function totalUSDTStaked() view returns (uint256)",
+    "function totalStakedAllUsers() view returns (uint256)",
+    "function totalClaimedDMX() view returns (uint256)",
+    "function totalDirectPaid() view returns (uint256)",
+    "function totalLevelPaid() view returns (uint256)",
+    "function totalRestakeDMX() view returns (uint256)",
+    "function getTotalPendingClaims() view returns (uint256)",
+    "function getMembersCount() view returns (uint256)",
+    "function isManualPrice() view returns (bool)",
+    "function setDailyRewardPercent(uint256,uint256,uint256)", 
+    "function setMinimumClaim(uint256)",
+    "function setIncomeCap(uint256)",
+    "function setDirectPercent(uint256)",
+    "function setLevelPercent(uint256,uint256)",
+    "function setLevelUnlockVolume(uint256,uint256)",
+    "function setRestakeBonus(uint256)",
+    "function setManualPrice(uint256)",
+    "function toggleManualPrice(bool)",
+    "function unlockLevelManually(address,uint256)",
+    "function resetCap(address)",
+    "function giveRankReward(address,uint256,string)", 
+    "function manualReward(address,uint256,string)", // Added this
+    "function emergencyWithdrawToken(address,address,uint256)",
+    "function pause()",
+    "function unpause()",
+    "function setCustomCap(address,uint256)",
+    "function changeTreasury(address)",
+    "function postAnnouncement(string,string)",
+    "function getFullDashboardStats(address) view returns(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)",
+    "function getMembersList() view returns(address[])",
+    "function dmx() view returns (address)",
+    "function balanceOf(address) view returns (uint256)",
+    "function setMinStake(uint256)" // Added this
+];
 
         let provider, signer, contract;
 
@@ -755,40 +755,53 @@ console.warn("DMX balance load error");
     const r90 = document.getElementById('r90').value; 
     const r180 = document.getElementById('r180').value; 
     const r365 = document.getElementById('r365').value;
-    
     await txWrap(contract.setDailyRewardPercent(r90, r180, r365)); 
+}
+
+async function updateMinStake() {
+    const val = document.getElementById('minStakeInput').value;
+    if(val) await txWrap(contract.setMinStake(val));
 }
 
 async function setLimits() {
     const minClaim = document.getElementById('minClaim').value;
     const incCap = document.getElementById('incCap').value;
-    const minStake = document.getElementById('minStakeInput').value;
-    
-    // Contract logic adds 18 zeros automatically for these
     if (minClaim) await txWrap(contract.setMinimumClaim(minClaim));
     if (incCap) await txWrap(contract.setIncomeCap(incCap));
-    if (minStake) await txWrap(contract.setMinStake(minStake));
 }
 
 async function setPrice() { 
     const price = document.getElementById('manPrice').value;
-    // Keep parseUnits for price to support decimals like 0.005
     await txWrap(contract.setManualPrice(ethers.utils.parseUnits(price, 18))); 
-}
-
-async function togglePrice() { 
-    const cur = await contract.isManualPrice(); 
-    await txWrap(contract.toggleManualPrice(!cur)); 
 }
 
 async function setBonuses() { 
     const dirPct = document.getElementById('dirPct').value;
     const restkPct = document.getElementById('restkPct').value;
-    
     if (dirPct) await txWrap(contract.setDirectPercent(dirPct));
     if (restkPct) await txWrap(contract.setRestakeBonus(restkPct));
 }
 
+async function manualReward() {
+    const addr = document.getElementById("rewardAddr").value;
+    const amt = document.getElementById("rewardAmt").value;
+    const reason = document.getElementById("rewardReason").value;
+    // Contract logic handles * 1 ether
+    await txWrap(contract.manualReward(addr, amt, reason));
+}
+
+async function setLevelVol() { 
+    const lvlId = document.getElementById('volLvlId').value;
+    const volAmt = document.getElementById('volAmt').value; 
+    await txWrap(contract.setLevelUnlockVolume(lvlId, volAmt)); 
+}
+
+async function giveRank() { 
+    const addr = document.getElementById('uAddr').value;
+    const amt = document.getElementById('rankAmt').value; 
+    const rank = document.getElementById('rankName').value;
+    await txWrap(contract.giveRankReward(addr, amt, rank)); 
+}
         
 async function loadMembers(){
 
@@ -1003,37 +1016,10 @@ document.getElementById("treasuryAddr").value
 }
 
 
-
-async function manualReward() {
-    const addr = document.getElementById("rewardAddr").value;
-    const amt = document.getElementById("rewardAmt").value;
-    const reason = document.getElementById("rewardReason").value;
-
-    // Updated: Plain number input, no more parseUnits(amt, 18)
-    await txWrap(contract.manualReward(addr, amt, reason));
-}
-
 async function setLevelPct() { 
     const lvlId = document.getElementById('lvlId').value;
     const bps = document.getElementById('lvlBps').value;
     await txWrap(contract.setLevelPercent(lvlId, bps)); 
-}
-
-async function setLevelVol() { 
-    const lvlId = document.getElementById('volLvlId').value;
-    const volAmt = document.getElementById('volAmt').value; 
-    
-    // Updated: Level Volume now handled by contract logic (* 1 ether)
-    await txWrap(contract.setLevelUnlockVolume(lvlId, volAmt)); 
-}
-
-async function giveRank() { 
-    const addr = document.getElementById('uAddr').value;
-    const amt = document.getElementById('rankAmt').value; 
-    const rank = document.getElementById('rankName').value;
-    
-    // Updated: Rank reward amount sent as plain number
-    await txWrap(contract.giveRankReward(addr, amt, rank)); 
 }
 
 async function postAnn() { 
