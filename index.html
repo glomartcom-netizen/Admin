@@ -151,104 +151,67 @@ Refresh Stats
 </div>
 
 <!-- MAIN GRID -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-<!-- LEFT SIDE -->
-<div class="lg:col-span-2 space-y-8">
-
-<!-- PROTOCOL ENGINE -->
 <section class="admin-card p-8">
+    <h2 class="text-xl font-black mb-6 text-cyan-400 uppercase border-b border-white/10 pb-3">
+        ⚙️ Protocol Engine
+    </h2>
 
-<h2 class="text-xl font-black mb-6 text-cyan-400 uppercase border-b border-white/10 pb-3">
-⚙️ Protocol Engine
-</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-6">
+            <label class="text-xs uppercase">Reward BPS (90 / 180 / 365)</label>
+            <div class="flex gap-3">
+                <input id="r90" type="number" placeholder="90 days" class="w-full p-3 rounded-xl text-center">
+                <input id="r180" type="number" placeholder="180 days" class="w-full p-3 rounded-xl text-center">
+                <input id="r365" type="number" placeholder="365 days" class="w-full p-3 rounded-xl text-center">
+                <button onclick="setRates()" class="bg-slate-700 px-6 py-3 rounded-xl font-bold btn-action">Update</button>
+            </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-2">
+                <label class="text-xs uppercase">Min Stake (DMX)</label>
+                <div class="flex gap-3">
+                    <input id="minStakeInput" type="number" placeholder="e.g. 2500" class="flex-1 p-3 rounded-xl">
+                    <button onclick="updateMinStake()" class="bg-indigo-600 px-6 py-3 rounded-xl font-bold text-white btn-action">SET</button>
+                </div>
+            </div>
 
-<div class="space-y-6">
+            <div class="flex gap-4">
+                <div class="flex-1">
+                    <label class="text-xs uppercase">Min Claim</label>
+                    <input id="minClaim" type="number" class="w-full p-3 rounded-xl">
+                </div>
+                <div class="flex-1">
+                    <label class="text-xs uppercase">Income Cap</label>
+                    <input id="incCap" type="number" class="w-full p-3 rounded-xl">
+                </div>
+                <button onclick="setLimits()" class="bg-blue-600 px-6 py-3 rounded-xl font-bold text-white btn-action">Set</button>
+            </div>
+        </div>
 
-<label class="text-xs uppercase">Reward BPS (90 / 180 / 365)</label>
+        <div class="space-y-6">
+            <label class="text-xs uppercase">
+                Price Mode : <span id="priceStatus" class="font-bold ml-2 text-yellow-400">SYNCING</span>
+            </label>
+            <div class="flex gap-3">
+                <input id="manPrice" type="number" step="0.000001" placeholder="Manual Price" class="flex-1 p-3 rounded-xl">
+                <button onclick="setPrice()" class="bg-yellow-600 px-5 py-3 rounded-xl font-bold text-white btn-action">SET</button>
+                <button onclick="togglePrice()" class="bg-green-600 px-5 py-3 rounded-xl font-bold text-white btn-action">LIVE</button>
+            </div>
 
-<div class="flex gap-3">
-<input id="r90" type="number" placeholder="90 days" class="w-full p-3 rounded-xl text-center">
-<input id="r180" type="number" placeholder="180 days" class="w-full p-3 rounded-xl text-center">
-<input id="r365" type="number" placeholder="365 days" class="w-full p-3 rounded-xl text-center">
-
-<button onclick="setRates()" class="bg-slate-700 px-6 py-3 rounded-xl font-bold">
-Update
-</button>
-</div>
-
-<div class="flex gap-4">
-
-<div class="flex-1">
-<label class="text-xs uppercase">Min Claim</label>
-<input id="minClaim" type="number" class="w-full p-3 rounded-xl">
-</div>
-
-<div class="flex-1">
-<label class="text-xs uppercase">Income Cap</label>
-<input id="incCap" type="number" class="w-full p-3 rounded-xl">
-</div>
-
-<button onclick="setLimits()" class="bg-blue-600 px-6 py-3 rounded-xl font-bold text-white">
-Set
-</button>
-
-</div>
-
-</div>
-
-
-<div class="space-y-6">
-
-<label class="text-xs uppercase">
-Price Mode :
-<span id="priceStatus" class="font-bold ml-2 text-yellow-400">SYNCING</span>
-</label>
-
-<div class="flex gap-3">
-
-<input id="manPrice" type="number" step="0.000001"
-placeholder="Manual Price"
-class="flex-1 p-3 rounded-xl">
-
-<button onclick="setPrice()"
-class="bg-yellow-600 px-5 py-3 rounded-xl font-bold text-white">
-SET
-</button>
-
-<button onclick="togglePrice()"
-class="bg-green-600 px-5 py-3 rounded-xl font-bold text-white">
-LIVE
-</button>
-
-</div>
-
-<div class="flex gap-4">
-
-<div class="flex-1">
-<label class="text-xs uppercase">Direct %</label>
-<input id="dirPct" type="number" class="w-full p-3 rounded-xl">
-</div>
-
-<div class="flex-1">
-<label class="text-xs uppercase">Restake %</label>
-<input id="restkPct" type="number" class="w-full p-3 rounded-xl">
-</div>
-
-<button onclick="setBonuses()"
-class="bg-blue-600 px-6 py-3 rounded-xl font-bold text-white">
-Set
-</button>
-
-</div>
-
-</div>
-
-</div>
-
+            <div class="flex gap-4">
+                <div class="flex-1">
+                    <label class="text-xs uppercase">Direct %</label>
+                    <input id="dirPct" type="number" class="w-full p-3 rounded-xl">
+                </div>
+                <div class="flex-1">
+                    <label class="text-xs uppercase">Restake %</label>
+                    <input id="restkPct" type="number" class="w-full p-3 rounded-xl">
+                </div>
+                <button onclick="setBonuses()" class="bg-blue-600 px-6 py-3 rounded-xl font-bold text-white btn-action">Set</button>
+            </div>
+        </div>
+    </div>
 </section>
+
 
 <!-- MEMBERS -->
 
@@ -654,7 +617,8 @@ Transfer Ownership
             "function getFullDashboardStats(address) view returns(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)",
             "function getMembersList() view returns(address[])",
             "function dmx() view returns (address)",
-            "function balanceOf(address) view returns (uint256)"
+            "function balanceOf(address) view returns (uint256)",
+            "function setMinStake(uint256)"
              ];  
 
         let provider, signer, contract;
@@ -787,25 +751,45 @@ console.warn("DMX balance load error");
         };
 
         // --- functions ---
-        async function setRates() { txWrap(contract.setDailyRewardPercent(document.getElementById('r90').value, document.getElementById('r180').value, document.getElementById('r365').value)); }
+        async function setRates() { 
+    const r90 = document.getElementById('r90').value; 
+    const r180 = document.getElementById('r180').value; 
+    const r365 = document.getElementById('r365').value;
+    
+    await txWrap(contract.setDailyRewardPercent(r90, r180, r365)); 
+}
+
+async function setLimits() {
+    const minClaim = document.getElementById('minClaim').value;
+    const incCap = document.getElementById('incCap').value;
+    const minStake = document.getElementById('minStakeInput').value;
+    
+    // Contract logic adds 18 zeros automatically for these
+    if (minClaim) await txWrap(contract.setMinimumClaim(minClaim));
+    if (incCap) await txWrap(contract.setIncomeCap(incCap));
+    if (minStake) await txWrap(contract.setMinStake(minStake));
+}
+
+async function setPrice() { 
+    const price = document.getElementById('manPrice').value;
+    // Keep parseUnits for price to support decimals like 0.005
+    await txWrap(contract.setManualPrice(ethers.utils.parseUnits(price, 18))); 
+}
+
+async function togglePrice() { 
+    const cur = await contract.isManualPrice(); 
+    await txWrap(contract.toggleManualPrice(!cur)); 
+}
+
+async function setBonuses() { 
+    const dirPct = document.getElementById('dirPct').value;
+    const restkPct = document.getElementById('restkPct').value;
+    
+    if (dirPct) await txWrap(contract.setDirectPercent(dirPct));
+    if (restkPct) await txWrap(contract.setRestakeBonus(restkPct));
+}
+
         
-        async function setLimits() {
-            if(document.getElementById('minClaim').value) await txWrap(contract.setMinimumClaim(ethers.utils.parseUnits(document.getElementById('minClaim').value, 18)));
-            if(document.getElementById('incCap').value) await txWrap(contract.setIncomeCap(document.getElementById('incCap').value));
-        }
-
-        async function setPrice() { txWrap(contract.setManualPrice(ethers.utils.parseUnits(document.getElementById('manPrice').value, 18))); }
-        
-        async function togglePrice() { 
-            const cur = await contract.isManualPrice(); 
-            txWrap(contract.toggleManualPrice(!cur)); 
-        }
-
-        async function setBonuses() { 
-            if(document.getElementById('dirPct').value) await txWrap(contract.setDirectPercent(document.getElementById('dirPct').value));
-            if(document.getElementById('restkPct').value) await txWrap(contract.setRestakeBonus(document.getElementById('restkPct').value));
-        }
-
 async function loadMembers(){
 
 const members = await contract.getMembersList();
@@ -1020,46 +1004,53 @@ document.getElementById("treasuryAddr").value
 
 
 
-// ---------- MANUAL REWARD ----------
-async function manualReward(){
+async function manualReward() {
+    const addr = document.getElementById("rewardAddr").value;
+    const amt = document.getElementById("rewardAmt").value;
+    const reason = document.getElementById("rewardReason").value;
 
-const addr = document.getElementById("rewardAddr").value;
-
-const amt = document.getElementById("rewardAmt").value;
-
-const reason = document.getElementById("rewardReason").value;
-
-txWrap(
-
-contract.manualReward(
-
-addr,
-
-ethers.utils.parseUnits(amt,18),
-
-reason
-
-)
-
-);
-
+    // Updated: Plain number input, no more parseUnits(amt, 18)
+    await txWrap(contract.manualReward(addr, amt, reason));
 }
-        
-        
-        async function setLevelPct() { txWrap(contract.setLevelPercent(document.getElementById('lvlId').value, document.getElementById('lvlBps').value)); }
-        
-        async function setLevelVol() { txWrap(contract.setLevelUnlockVolume(document.getElementById('volLvlId').value, ethers.utils.parseUnits(document.getElementById('volAmt').value, 18))); }
 
-        async function postAnn() { txWrap(contract.postAnnouncement(document.getElementById('annMsg').value, document.getElementById('annImg').value)); }
+async function setLevelPct() { 
+    const lvlId = document.getElementById('lvlId').value;
+    const bps = document.getElementById('lvlBps').value;
+    await txWrap(contract.setLevelPercent(lvlId, bps)); 
+}
 
-        async function unlLevel() { txWrap(contract.unlockLevelManually(document.getElementById('uAddr').value, document.getElementById('unlDays').value || 30)); }
-        
-        async function setCustCap() { txWrap(contract.setCustomCap(document.getElementById('uAddr').value, document.getElementById('custCap').value)); }
-        
-        async function resCap() { txWrap(contract.resetCap(document.getElementById('uAddr').value)); }
-        
-        async function giveRank() { txWrap(contract.giveRankReward(document.getElementById('uAddr').value, ethers.utils.parseUnits(document.getElementById('rankAmt').value, 18), document.getElementById('rankName').value)); }
+async function setLevelVol() { 
+    const lvlId = document.getElementById('volLvlId').value;
+    const volAmt = document.getElementById('volAmt').value; 
+    
+    // Updated: Level Volume now handled by contract logic (* 1 ether)
+    await txWrap(contract.setLevelUnlockVolume(lvlId, volAmt)); 
+}
 
+async function giveRank() { 
+    const addr = document.getElementById('uAddr').value;
+    const amt = document.getElementById('rankAmt').value; 
+    const rank = document.getElementById('rankName').value;
+    
+    // Updated: Rank reward amount sent as plain number
+    await txWrap(contract.giveRankReward(addr, amt, rank)); 
+}
+
+async function postAnn() { 
+    await txWrap(contract.postAnnouncement(document.getElementById('annMsg').value, document.getElementById('annImg').value)); 
+}
+
+async function unlLevel() { 
+    await txWrap(contract.unlockLevelManually(document.getElementById('uAddr').value, document.getElementById('unlDays').value || 30)); 
+}
+
+async function setCustCap() { 
+    await txWrap(contract.setCustomCap(document.getElementById('uAddr').value, document.getElementById('custCap').value)); 
+}
+
+async function resCap() { 
+    await txWrap(contract.resetCap(document.getElementById('uAddr').value)); 
+}
         async function setPause(s) { txWrap(s ? contract.pause() : contract.unpause()); }
 
         async function transferOwn() {
