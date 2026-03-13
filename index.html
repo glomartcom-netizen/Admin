@@ -629,6 +629,78 @@ Send Reward
 
 </div>
 
+    <!-- GAME CONTROL -->
+
+<div class="border-t border-white/10 pt-6">
+
+<h3 class="text-sm font-bold mb-3 text-cyan-400 uppercase">
+Game Control
+</h3>
+
+<div class="grid grid-cols-2 gap-3">
+
+<input id="gameCooldown"
+placeholder="Cooldown Seconds"
+class="w-full p-3 rounded-xl">
+
+<input id="gameMaxReward"
+placeholder="Max Reward DMX"
+class="w-full p-3 rounded-xl">
+
+</div>
+
+<div class="flex gap-3 mt-3">
+
+<button onclick="enableGame()"
+class="flex-1 bg-green-600 py-3 rounded-xl font-bold text-white">
+
+Enable Game
+
+</button>
+
+<button onclick="disableGame()"
+class="flex-1 bg-red-600 py-3 rounded-xl font-bold text-white">
+
+Disable Game
+
+</button>
+
+</div>
+
+</div>
+
+ <!-- GAME POOL -->
+
+<div class="border-t border-white/10 pt-6">
+
+<h3 class="text-sm font-bold mb-3 text-yellow-400 uppercase">
+Game Reward Pool
+</h3>
+
+<input id="poolAmt"
+placeholder="DMX Amount"
+class="w-full p-3 rounded-xl mb-3">
+
+<div class="flex gap-3">
+
+<button onclick="addGamePool()"
+class="flex-1 bg-green-600 py-3 rounded-xl font-bold text-white">
+
+Add Pool
+
+</button>
+
+<button onclick="withdrawGamePool()"
+class="flex-1 bg-red-600 py-3 rounded-xl font-bold text-white">
+
+Withdraw Pool
+
+</button>
+
+</div>
+
+</div>   
+
 
 <!-- TREASURY WALLET -->
 <div class="border-t border-white/10 pt-6">
@@ -721,7 +793,10 @@ Transfer Ownership
     "function setMinStake(uint256)",
     "function togglePancakeSwap(bool)",
     "function pancakeSwapEnabled() view returns (bool)",
-    "function usdt() view returns (address)"       
+    "function usdt() view returns (address)",
+    "function setGameConfig(bool,uint256,bool,uint256)",
+    "function addGameRewardPool(uint256)",
+    "function withdrawGamePool(uint256)"
 ];
 
         let provider, signer, contract;
@@ -1238,6 +1313,117 @@ async function resCap() {
                 ethers.utils.parseUnits(document.getElementById('ewAmt').value, 18)
             )); 
         }
+
+    // =============================
+// GAME CONTROL FUNCTIONS
+// =============================
+
+// ENABLE GAME
+async function enableGame(){
+
+if(!contract) return alert("Connect Admin First");
+
+const cooldown =
+document.getElementById("gameCooldown")?.value || 86400;
+
+const maxReward =
+document.getElementById("gameMaxReward")?.value || 1500;
+
+await txWrap(
+contract.setGameConfig(
+true,
+cooldown,
+false,
+ethers.utils.parseEther(maxReward.toString())
+)
+);
+
+}
+
+
+// DISABLE GAME
+async function disableGame(){
+
+if(!contract) return alert("Connect Admin First");
+
+const cooldown =
+document.getElementById("gameCooldown")?.value || 86400;
+
+const maxReward =
+document.getElementById("gameMaxReward")?.value || 1500;
+
+await txWrap(
+contract.setGameConfig(
+false,
+cooldown,
+false,
+ethers.utils.parseEther(maxReward.toString())
+)
+);
+
+}
+
+
+// =============================
+// GAME REWARD POOL CONTROL
+// =============================
+
+// ADD REWARD POOL
+async function addGamePool(){
+
+if(!contract) return alert("Connect Admin First");
+
+const amt =
+document.getElementById("poolAmt").value;
+
+if(!amt) return alert("Enter Amount");
+
+await txWrap(
+contract.addGameRewardPool(
+ethers.utils.parseEther(amt)
+)
+);
+
+}
+
+
+// WITHDRAW GAME POOL
+async function withdrawGamePool(){
+
+if(!contract) return alert("Connect Admin First");
+
+const amt =
+document.getElementById("poolAmt").value;
+
+if(!amt) return alert("Enter Amount");
+
+await txWrap(
+contract.withdrawGamePool(
+ethers.utils.parseEther(amt)
+)
+);
+
+}
+
+
+// =============================
+// AUTO REFRESH CONTRACT BALANCE
+// =============================
+
+setInterval(() => {
+
+try{
+
+loadLiquidity();
+loadStats();
+
+}catch(e){
+
+console.log("Admin auto refresh error");
+
+}
+
+},15000);
 
         document.getElementById('connectBtn').onclick = connect;
     </script>
