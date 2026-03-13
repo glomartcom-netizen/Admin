@@ -639,13 +639,9 @@ Game Control
 
 <div class="grid grid-cols-2 gap-3">
 
-<input id="gameCooldown" type="number">
-placeholder="Cooldown Seconds"
-class="w-full p-3 rounded-xl">
+<input id="gameCooldown" type="number" placeholder="Cooldown Seconds" class="w-full p-3 rounded-xl">
 
-<input id="gameMaxReward" type="number">
-placeholder="Max Reward DMX"
-class="w-full p-3 rounded-xl">
+<input id="gameMaxReward" type="number" placeholder="Max Reward DMX" class="w-full p-3 rounded-xl">
 
 </div>
 
@@ -677,9 +673,7 @@ Disable Game
 Game Reward Pool
 </h3>
 
-<input id="poolAmt" type="number">
-placeholder="DMX Amount"
-class="w-full p-3 rounded-xl mb-3">
+<input id="poolAmt" type="number" placeholder="DMX Amount" class="w-full p-3 rounded-xl mb-3">
 
 <div class="flex gap-3">
 
@@ -768,8 +762,8 @@ Transfer Ownership
     "function getTotalPendingClaims() view returns (uint256)",
     "function getMembersCount() view returns (uint256)",
     "function isManualPrice() view returns (bool)",
-    "function setDailyRewardPercent(uint256,uint256,uint256)", 
-    "function setMinimumClaim(uint256)",
+    "function setDailyRate(uint256,uint256,uint256)",
+    "function setMinClaim(uint256)",
     "function setIncomeCap(uint256)",
     "function setDirectPercent(uint256)",
     "function setLevelPercent(uint256,uint256)",
@@ -1341,7 +1335,6 @@ ethers.utils.parseEther(maxReward.toString())
 }
 
 
-// DISABLE GAME
 async function disableGame(){
 
 if(!contract) return alert("Connect Admin First");
@@ -1357,12 +1350,11 @@ contract.setGameConfig(
 false,
 cooldown,
 false,
-ethers.utils.parseEther(amt)
+ethers.utils.parseEther(maxReward.toString())
 )
 );
 
 }
-
 
 // =============================
 // GAME REWARD POOL CONTROL
