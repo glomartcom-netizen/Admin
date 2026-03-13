@@ -796,7 +796,7 @@ Transfer Ownership
     "function usdt() view returns (address)",
     "function setGameConfig(bool,uint256,bool,uint256)",
     "function addGameRewardPool(uint256)",
-    "function withdrawGamePool(uint256)"
+    "function withdrawGameRewardPool(uint256)"
 ];
 
         let provider, signer, contract;
@@ -938,7 +938,7 @@ console.warn("DMX balance load error");
     const r90 = document.getElementById('r90').value; 
     const r180 = document.getElementById('r180').value; 
     const r365 = document.getElementById('r365').value;
-    await txWrap(contract.setDailyRewardPercent(r90, r180, r365)); 
+    await txWrap(contract.setDailyRate(r90, r180, r365));
 }
 
 async function updateMinStake() {
@@ -949,7 +949,7 @@ async function updateMinStake() {
 async function setLimits() {
     const minClaim = document.getElementById('minClaim').value;
     const incCap = document.getElementById('incCap').value;
-    if (minClaim) await txWrap(contract.setMinimumClaim(minClaim));
+    if (minClaim) await txWrap(contract.setMinClaim(minClaim));
     if (incCap) await txWrap(contract.setIncomeCap(incCap));
 }
 
@@ -1357,7 +1357,7 @@ contract.setGameConfig(
 false,
 cooldown,
 false,
-ethers.utils.parseEther(maxReward.toString())
+ethers.utils.parseEther(amt)
 )
 );
 
@@ -1398,7 +1398,7 @@ document.getElementById("poolAmt").value;
 if(!amt) return alert("Enter Amount");
 
 await txWrap(
-contract.withdrawGamePool(
+contract.withdrawGameRewardPool(
 ethers.utils.parseEther(amt)
 )
 );
