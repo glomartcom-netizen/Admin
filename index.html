@@ -1082,7 +1082,7 @@ const usdtBal = await usdtToken.balanceOf(contractAddress);
 const dmxBal = await dmxToken.balanceOf(contractAddress);
 
 document.getElementById("statContractUSDT").innerText =
-Number(ethers.utils.formatEther(usdtBal)).toLocaleString();
+Number(ethers.utils.formatUnits(usdtBal,18)).toLocaleString();
 
 document.getElementById("statContractDMX2").innerText =
 Number(ethers.utils.formatEther(dmxBal)).toLocaleString();
@@ -1101,19 +1101,23 @@ const mode = await contract.pancakeSwapEnabled();
 
 const statusEl = document.getElementById("adminStatus");
 
+const wallet = await signer.getAddress();
+
 if(mode){
 
-statusEl.innerHTML +=
+statusEl.innerHTML =
+"Verified: " + wallet.slice(0,6) + "..." + wallet.slice(-4) +
 " <span class='text-red-500'>[PANCAKE MODE]</span>";
 
 }else{
 
-statusEl.innerHTML +=
+statusEl.innerHTML =
+"Verified: " + wallet.slice(0,6) + "..." + wallet.slice(-4) +
 " <span class='text-green-500'>[INTERNAL SWAP]</span>";
 
 }
 
-}    
+}
 
         // ---------- RENDER BOARD ----------
 function renderBoard(id,data){
