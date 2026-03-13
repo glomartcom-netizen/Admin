@@ -899,37 +899,36 @@ showTab('stakes');
         }      
     }      
       
- setInterval(async () => {      
-      
-try{      
-      
-if(!userAddress){      
-await window.syncWallet();      
-return;      
-}      
+setInterval(async () => {
+
+try{
+
+if(!userAddress){
+await window.syncWallet();
+return;
+}
 
 document.getElementById('adminPanel').style.opacity = "1";
 document.getElementById('adminPanel').style.pointerEvents = "all";
-document.getElementById('connectBtn').innerText = "ONLINE";
-document.getElementById('connectBtn').style.backgroundColor = "#10b981";
+
+document.getElementById('walletBtn').innerText = "ONLINE";
+document.getElementById('walletBtn').style.backgroundColor = "#10b981";
 
 document.getElementById('adminStatus').innerText =
-"Verified: " + accounts[0].slice(0,6)+"..."+accounts[0].slice(-4);
+"Verified: " + userAddress.slice(0,6)+"..."+userAddress.slice(-4);
 
 loadStats();
 loadLiquidity();
 checkSwapStatus();
 
-}
-
-catch(err){
+}catch(err){
 
 console.error(err);
 alert("Connection Error!");
 
 }
 
-        }
+},5000);
 
         async function loadStats() {
 
