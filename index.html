@@ -904,9 +904,7 @@ btn.classList.add("bg-emerald-600","text-white");
 btn.classList.add("walletConnected");      
       
 contract = new ethers.Contract(STAKE_ADDR, ABI, signer);      
-      
-document.getElementById('refBox').classList.remove('hidden');      
-document.getElementById('myRefLink').value = window.location.origin + window.location.pathname + "?ref=" + userAddress;      
+            
       
 refreshData();      
 showTab('stakes');      
@@ -921,16 +919,6 @@ if(!userAddress){
 await window.syncWallet();      
 return;      
 }      
-      
-await refreshData();      
-await updatePrice();      
-await updateRewardPool();      
-      
-}catch(e){      
-console.log("Dashboard sync error");      
-}      
-      
-},10000);
 
 document.getElementById('adminPanel').style.opacity = "1";
 document.getElementById('adminPanel').style.pointerEvents = "all";
