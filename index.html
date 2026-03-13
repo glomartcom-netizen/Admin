@@ -859,18 +859,6 @@ clearInterval(reconnect);
 
         let provider, signer, contract, userAddress;      
       
-    // 1️⃣ Referral Auto-fill on load      
-    window.onload = () => {      
-    const urlParams = new URLSearchParams(window.location.search);
-    const ref = urlParams.get('ref');      
-    
-    if(ref && ethers.utils.isAddress(ref)){      
-        // This overwrites the 0x000 with the actual friend's address
-        document.getElementById("refAddress").value = ref;      
-        console.log("Referral link detected: " + ref);
-    }      
-};
-      
     window.syncWallet = async function() {      
         if (!window.appKitModal) return;      
         const walletProvider = window.appKitModal.getWalletProvider();      
@@ -903,7 +891,7 @@ btn.classList.remove("bg-amber-500","text-black");
 btn.classList.add("bg-emerald-600","text-white");      
 btn.classList.add("walletConnected");      
       
-contract = new ethers.Contract(STAKE_ADDR, ABI, signer);      
+contract = new ethers.Contract(contractAddress, abi, signer);      
             
       
 refreshData();      
@@ -1537,7 +1525,9 @@ console.log("Admin auto refresh error");
 
 },15000);
 
-        document.getElementById('connectBtn').onclick = connect;
+        
     </script>
 </body>
 </html>
+
+
