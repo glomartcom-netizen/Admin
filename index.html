@@ -474,6 +474,107 @@ Unpause Contract
 </div>
 </div>
 
+<!-- SWAP ENGINE CONTROL -->
+
+<section class="admin-card p-8 border-t-4 border-cyan-500 mt-8">
+
+<h2 class="text-xl font-black mb-6 text-cyan-400 uppercase">
+🔄 Swap Engine Control
+</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+<!-- SWAP MODE -->
+
+<div class="space-y-4">
+
+<label class="text-xs uppercase">
+Swap Mode Control
+</label>
+
+<div class="flex gap-4">
+
+<button onclick="updateSwapMode(false)"
+class="flex-1 bg-green-600 py-3 rounded-xl font-bold text-white hover:bg-green-700 btn-action">
+
+ENABLE INTERNAL SWAP
+
+</button>
+
+<button onclick="updateSwapMode(true)"
+class="flex-1 bg-red-600 py-3 rounded-xl font-bold text-white hover:bg-red-700 btn-action">
+
+ENABLE PANCAKE MODE
+
+</button>
+
+</div>
+
+<p class="text-[11px] text-gray-400">
+
+Internal Swap → Dashboard swap  
+Pancake Mode → Only PancakeSwap
+
+</p>
+
+</div>
+
+
+<!-- LIQUIDITY CHECK -->
+
+<div class="space-y-4">
+
+<label class="text-xs uppercase">
+Contract Liquidity
+</label>
+
+<div class="grid grid-cols-2 gap-4">
+
+<div class="bg-black/40 p-4 rounded-xl border border-white/5">
+
+<p class="text-[10px] text-gray-400">
+USDT Balance
+</p>
+
+<span id="statContractUSDT"
+class="text-white font-black text-lg">
+
+0
+
+</span>
+
+</div>
+
+<div class="bg-black/40 p-4 rounded-xl border border-white/5">
+
+<p class="text-[10px] text-gray-400">
+DMX Balance
+</p>
+
+<span id="statContractDMX2"
+class="text-cyan-400 font-black text-lg">
+
+0
+
+</span>
+
+</div>
+
+</div>
+
+<button onclick="loadLiquidity()"
+class="w-full bg-slate-700 py-2 rounded-lg text-xs font-bold uppercase">
+
+Refresh Liquidity
+
+</button>
+
+</div>
+
+</div>
+
+</section>    
+
 
 <!-- EMERGENCY TOKEN RECOVERY -->
 <div class="border-t border-white/10 pt-6">
@@ -618,7 +719,13 @@ Transfer Ownership
     "function getMembersList() view returns(address[])",
     "function dmx() view returns (address)",
     "function balanceOf(address) view returns (uint256)",
-    "function setMinStake(uint256)" // Added this
+    "function setMinStake(uint256)",
+    "function togglePancakeSwap(bool)",
+    "function pancakeSwapEnabled() view returns (bool)",
+    "function buyDMX(uint256)",
+    "function sellDMX(uint256)",
+    "function usdt() view returns (address)",
+    "function dmx() view returns (address)"       
 ];
 
         let provider, signer, contract;
@@ -642,12 +749,17 @@ Transfer Ownership
                 }
 
                 contract = new ethers.Contract(contractAddress, abi, signer);
-                document.getElementById('adminPanel').style.opacity = "1";
-                document.getElementById('adminPanel').style.pointerEvents = "all";
-                document.getElementById('connectBtn').innerText = "ONLINE";
-                document.getElementById('connectBtn').style.backgroundColor = "#10b981";
-                document.getElementById('adminStatus').innerText = "Verified: " + accounts[0].slice(0,6)+"..."+accounts[0].slice(-4);
-                loadStats();
+document.getElementById('adminPanel').style.opacity = "1";
+document.getElementById('adminPanel').style.pointerEvents = "all";
+document.getElementById('connectBtn').innerText = "ONLINE";
+document.getElementById('connectBtn').style.backgroundColor = "#10b981";
+document.getElementById('adminStatus').innerText = "Verified: " + accounts[0].slice(0,6)+"..."+accounts[0].slice(-4);
+
+loadStats();
+
+loadLiquidity();
+
+checkSwapStatus();
             } catch (err) {
                 console.error(err);
                 alert("Connection Error!");
@@ -934,6 +1046,77 @@ console.error("Leaderboard load error",e);
 }
 
 }
+
+// SWAP MODE CONTROL
+
+async function updateSwapMode(state){
+
+if(!contract) return;
+
+await txWrap(contract.togglePancakeSwap(state));
+
+}
+
+
+// CONTRACT LIQUIDITY
+
+async function loadLiquidity(){
+
+if(!contract) return;
+
+try{
+
+const usdtAddr = await contract.usdt();
+const dmxAddr = await contract.dmx();
+
+const usdtToken = new ethers.Contract(
+usdtAddr,
+["function balanceOf(address) view returns(uint256)"],
+provider
+);
+
+const dmxToken = new ethers.Contract(
+dmxAddr,
+["function balanceOf(address) view returns(uint256)"],
+provider
+);
+
+const usdtBal = await usdtToken.balanceOf(contractAddress);
+const dmxBal = await dmxToken.balanceOf(contractAddress);
+
+document.getElementById("statContractUSDT").innerText =
+Number(ethers.utils.formatEther(usdtBal)).toLocaleString();
+
+document.getElementById("statContractDMX2").innerText =
+Number(ethers.utils.formatEther(dmxBal)).toLocaleString();
+
+}catch(e){
+
+console.error("Liquidity load error",e);
+
+}
+
+        }
+
+async function checkSwapStatus(){
+
+const mode = await contract.pancakeSwapEnabled();
+
+const statusEl = document.getElementById("adminStatus");
+
+if(mode){
+
+statusEl.innerHTML +=
+" <span class='text-red-500'>[PANCAKE MODE]</span>";
+
+}else{
+
+statusEl.innerHTML +=
+" <span class='text-green-500'>[INTERNAL SWAP]</span>";
+
+}
+
+}    
 
         // ---------- RENDER BOARD ----------
 function renderBoard(id,data){
