@@ -745,7 +745,69 @@ Transfer Ownership
 
     </main>
 
-    <script>
+    <script type="module">  
+import { createAppKit } from 'https://esm.sh/@reown/appkit?bundle'  
+import { Ethers5Adapter } from 'https://esm.sh/@reown/appkit-adapter-ethers5?bundle'  
+import { bsc } from 'https://esm.sh/@reown/appkit/networks?bundle'  
+  
+const projectId = '059cc242b0cc96ac9665c598b76ddc7b';  
+  
+const modal = createAppKit({  
+  adapters: [new Ethers5Adapter()],  
+  networks: [bsc],  
+  metadata: {   
+    name: 'DimeX Pro',   
+    url: window.location.origin,   
+    icons: ['https://i.ibb.co/HpqwGFqt/logo.png']   
+  },  
+  projectId,  
+  features: { analytics: true }  
+});  
+  
+window.appKitModal = modal;  
+  
+modal.subscribeState((state) => {  
+  if(state?.isConnected && window.syncWallet){  
+    window.syncWallet();  
+  }  
+});  
+  
+modal.subscribeProvider((info) => {  
+  if(info?.isConnected && window.syncWallet){  
+    window.syncWallet();  
+  }  
+});  
+  
+/* AUTO RECONNECT */    
+window.addEventListener("load", () => {    
+    
+let retry = 0;    
+const maxRetries = 10;    
+    
+const reconnect = setInterval(() => {    
+    
+const provider = modal.getWalletProvider();    
+    
+if(provider){    
+    
+if(window.syncWallet){    
+window.syncWallet();    
+}    
+    
+clearInterval(reconnect);    
+}    
+    
+retry++;    
+    
+if(retry >= maxRetries){    
+clearInterval(reconnect);    
+}    
+    
+},1000);    
+    
+});    
+</script>  <script> 
+
         const ADMIN_WALLET = "0x53ba2d865be750d0e2d4d01bcb0a46ec1684c46b"; 
         const TARGET_CHAIN = 56; // BSC Mainnet
         const contractAddress = "YOUR_CONTRACT_ADDRESS"; // <--- இங்க உங்கள் அட்ரஸை மாற்றவும்
@@ -794,34 +856,80 @@ Transfer Ownership
     "function renounceOwnership()"       
 ];
 
-        let provider, signer, contract;
-
-        async function connect() {
-
-try {
-
-if (!window.ethereum) return alert("MetaMask Install பண்ணுங்க!");
-
-const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-
-provider = new ethers.providers.Web3Provider(window.ethereum);
-signer = provider.getSigner();
-
-const network = await provider.getNetwork();
-
-if (network.chainId !== TARGET_CHAIN) {
-alert("BSC Network-க்கு மாறுங்க!");
-return;
-}
-
-contract = new ethers.Contract(contractAddress, abi, signer);
-
-const owner = await contract.owner();
-
-if(accounts[0].toLowerCase() !== owner.toLowerCase()){
-alert("Unauthorized Admin!");
-return;
-}
+        let provider, signer, contract, userAddress;      
+      
+    // 1️⃣ Referral Auto-fill on load      
+    window.onload = () => {      
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');      
+    
+    if(ref && ethers.utils.isAddress(ref)){      
+        // This overwrites the 0x000 with the actual friend's address
+        document.getElementById("refAddress").value = ref;      
+        console.log("Referral link detected: " + ref);
+    }      
+};
+      
+    window.syncWallet = async function() {      
+        if (!window.appKitModal) return;      
+        const walletProvider = window.appKitModal.getWalletProvider();      
+        if (walletProvider) {      
+            provider = new ethers.providers.Web3Provider(walletProvider);      
+                  
+            // 2️⃣ Network Protection      
+            const network = await provider.getNetwork();      
+            if(network.chainId !== 56) {      
+                alert("Please switch to BSC Mainnet");      
+                return;      
+            }      
+      
+            signer = provider.getSigner();      
+userAddress = await signer.getAddress();      
+      
+/* wallet button update */      
+const btn = document.getElementById("walletBtn");      
+      
+const short =      
+userAddress.slice(0,6) + "..." + userAddress.slice(-4);      
+      
+const balanceWei = await provider.getBalance(userAddress);      
+const balance = ethers.utils.formatEther(balanceWei);      
+      
+btn.innerText =      
+short + " | " + parseFloat(balance).toFixed(3) + " BNB";      
+      
+btn.classList.remove("bg-amber-500","text-black");      
+btn.classList.add("bg-emerald-600","text-white");      
+btn.classList.add("walletConnected");      
+      
+contract = new ethers.Contract(STAKE_ADDR, ABI, signer);      
+      
+document.getElementById('refBox').classList.remove('hidden');      
+document.getElementById('myRefLink').value = window.location.origin + window.location.pathname + "?ref=" + userAddress;      
+      
+refreshData();      
+showTab('stakes');      
+        }      
+    }      
+      
+ setInterval(async () => {      
+      
+try{      
+      
+if(!userAddress){      
+await window.syncWallet();      
+return;      
+}      
+      
+await refreshData();      
+await updatePrice();      
+await updateRewardPool();      
+      
+}catch(e){      
+console.log("Dashboard sync error");      
+}      
+      
+},10000);
 
 document.getElementById('adminPanel').style.opacity = "1";
 document.getElementById('adminPanel').style.pointerEvents = "all";
