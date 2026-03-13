@@ -797,6 +797,8 @@ Transfer Ownership
 
         async function connect() {
 
+try {
+
 if (!window.ethereum) return alert("MetaMask Install பண்ணுங்க!");
 
 const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -820,24 +822,27 @@ alert("Unauthorized Admin!");
 return;
 }
 
-}
-
-                contract = new ethers.Contract(contractAddress, abi, signer);
 document.getElementById('adminPanel').style.opacity = "1";
 document.getElementById('adminPanel').style.pointerEvents = "all";
 document.getElementById('connectBtn').innerText = "ONLINE";
 document.getElementById('connectBtn').style.backgroundColor = "#10b981";
-document.getElementById('adminStatus').innerText = "Verified: " + accounts[0].slice(0,6)+"..."+accounts[0].slice(-4);
+
+document.getElementById('adminStatus').innerText =
+"Verified: " + accounts[0].slice(0,6)+"..."+accounts[0].slice(-4);
 
 loadStats();
-
 loadLiquidity();
-
 checkSwapStatus();
-            } catch (err) {
-                console.error(err);
-                alert("Connection Error!");
-            }
+
+}
+
+catch(err){
+
+console.error(err);
+alert("Connection Error!");
+
+}
+
         }
 
         async function loadStats() {
