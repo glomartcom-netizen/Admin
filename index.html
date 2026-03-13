@@ -796,22 +796,31 @@ Transfer Ownership
         let provider, signer, contract;
 
         async function connect() {
-            try {
-                if (!window.ethereum) return alert("MetaMask Install பண்ணுங்க!");
-                const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                signer = provider.getSigner();
-                const network = await provider.getNetwork();
 
-                if (network.chainId !== TARGET_CHAIN) {
-                    alert("BSC Network-க்கு மாறுங்க!");
-                    return;
-                }
+if (!window.ethereum) return alert("MetaMask Install பண்ணுங்க!");
 
-                if (accounts[0].toLowerCase() !== ADMIN_WALLET.toLowerCase()) {
-                    alert("Unauthorized Admin!");
-                    return;
-                }
+const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+
+provider = new ethers.providers.Web3Provider(window.ethereum);
+signer = provider.getSigner();
+
+const network = await provider.getNetwork();
+
+if (network.chainId !== TARGET_CHAIN) {
+alert("BSC Network-க்கு மாறுங்க!");
+return;
+}
+
+contract = new ethers.Contract(contractAddress, abi, signer);
+
+const owner = await contract.owner();
+
+if(accounts[0].toLowerCase() !== owner.toLowerCase()){
+alert("Unauthorized Admin!");
+return;
+}
+
+}
 
                 contract = new ethers.Contract(contractAddress, abi, signer);
 document.getElementById('adminPanel').style.opacity = "1";
@@ -1298,6 +1307,14 @@ async function resCap() {
 
         async function renounceOwn() {
             if (confirm("DANGER: This will delete admin access forever! Confirm?")) txWrap(contract.renounceOwnership());
+        }
+
+        async function togglePrice(){
+
+const mode = await contract.isManualPrice();
+
+await txWrap(contract.toggleManualPrice(!mode));
+
         }
 
         async function emgWithdraw() { 
