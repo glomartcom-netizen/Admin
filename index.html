@@ -872,7 +872,7 @@ clearInterval(reconnect);
                 return;      
             }      
       
-            signer = provider.getSigner();      
+            signer = provider.getSigner();
 userAddress = await signer.getAddress();
 
 const isAdmin =
@@ -880,12 +880,14 @@ userAddress.toLowerCase() === ADMIN_WALLET.toLowerCase();
 
 if(!isAdmin){
 alert("This wallet is not admin");
-
-document.getElementById('adminPanel').style.opacity = "0";
-document.getElementById('adminPanel').style.pointerEvents = "none";
+return;
 }
-      
-/* wallet button update */      
+
+// ADMIN PANEL OPEN
+document.getElementById('adminPanel').style.opacity = "1";
+document.getElementById('adminPanel').style.pointerEvents = "all";
+
+/* wallet button update */
 const btn = document.getElementById("walletBtn");      
       
 const short =      
