@@ -1478,8 +1478,7 @@ document.getElementById("poolAmt").value;
 if(!amt) return alert("Enter Amount");
 
 await txWrap(
-contract.addGameRewardPool(
-ethers.utils.parseEther(amt)
+contract.addGameRewardPool(amt)
 )
 );
 
@@ -1497,8 +1496,7 @@ document.getElementById("poolAmt").value;
 if(!amt) return alert("Enter Amount");
 
 await txWrap(
-contract.withdrawGameRewardPool(
-ethers.utils.parseEther(amt)
+contract.withdrawGameRewardPool(amt)
 )
 );
 
