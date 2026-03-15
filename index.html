@@ -874,10 +874,16 @@ clearInterval(reconnect);
       
             signer = provider.getSigner();      
 userAddress = await signer.getAddress();
-            
-            // ADMIN WALLET CHECK
-if(userAddress.toLowerCase() !== ADMIN_WALLET.toLowerCase()){
+
+const isAdmin =
+userAddress.toLowerCase() === ADMIN_WALLET.toLowerCase();
+
+if(!isAdmin){
 alert("This wallet is not admin");
+
+document.getElementById('adminPanel').style.opacity = "0";
+document.getElementById('adminPanel').style.pointerEvents = "none";
+
 return;
 }
       
