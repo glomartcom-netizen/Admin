@@ -875,18 +875,6 @@ clearInterval(reconnect);
             signer = provider.getSigner();
 userAddress = await signer.getAddress();
 
-const isAdmin =
-userAddress.toLowerCase() === ADMIN_WALLET.toLowerCase();
-
-if(!isAdmin){
-alert("This wallet is not admin");
-return;
-}
-
-// ADMIN PANEL OPEN
-document.getElementById('adminPanel').style.opacity = "1";
-document.getElementById('adminPanel').style.pointerEvents = "all";
-
 /* wallet button update */
 const btn = document.getElementById("walletBtn");      
       
