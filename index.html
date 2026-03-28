@@ -690,6 +690,28 @@ SET
 
 </div> 
 
+<div class="space-y-4 mt-6">
+
+<label class="text-xs uppercase">
+Auto Swap (Claim System)
+</label>
+
+<div class="flex gap-4">
+
+<button onclick="toggleAutoSwap(true)"
+class="flex-1 bg-green-600 py-3 rounded-xl font-bold text-white">
+AUTO SWAP ON
+</button>
+
+<button onclick="toggleAutoSwap(false)"
+class="flex-1 bg-red-600 py-3 rounded-xl font-bold text-white">
+AUTO SWAP OFF
+</button>
+
+</div>
+
+</div>    
+
   
 <!-- OWNERSHIP CONTROL -->  
 <div class="border-t border-white/10 pt-6">  
@@ -1440,6 +1462,36 @@ await txWrap(contract.toggleManualPrice(!mode));
         contract.setMaintenanceUnit(val)
     );
   }
+
+async function toggleAutoSwap(state){
+    if(!contract) return;
+    await txWrap(contract.toggleAutoSwap(state));
+}   
+
+async function checkAutoSwapStatus(){
+
+    if(!contract || !signer) return;
+
+    try{
+        const mode = await contract.autoSwapEnabled();
+        const wallet = await signer.getAddress();
+
+        const statusEl = document.getElementById("adminStatus");
+
+        if(mode){
+            statusEl.innerHTML =
+            "Verified: " + wallet.slice(0,6) + "..." + wallet.slice(-4) +
+            " <span class='text-yellow-400'>[AUTO SWAP ON]</span>";
+        }else{
+            statusEl.innerHTML =
+            "Verified: " + wallet.slice(0,6) + "..." + wallet.slice(-4) +
+            " <span class='text-gray-400'>[AUTO SWAP OFF]</span>";
+        }
+
+    }catch(e){
+        console.warn("AutoSwap status error");
+    }
+}
   
 // =============================  
 // AUTO REFRESH CONTRACT BALANCE  
