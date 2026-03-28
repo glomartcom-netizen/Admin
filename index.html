@@ -1488,17 +1488,14 @@ async function checkAutoSwapStatus(){
 
     try{
         const mode = await contract.autoSwapEnabled();
-        const wallet = await signer.getAddress();
 
         const statusEl = document.getElementById("adminStatus");
 
         if(mode){
-            statusEl.innerHTML =
-            "Verified: " + wallet.slice(0,6) + "..." + wallet.slice(-4) +
+            statusEl.innerHTML += 
             " <span class='text-yellow-400'>[AUTO SWAP ON]</span>";
         }else{
-            statusEl.innerHTML =
-            "Verified: " + wallet.slice(0,6) + "..." + wallet.slice(-4) +
+            statusEl.innerHTML += 
             " <span class='text-gray-400'>[AUTO SWAP OFF]</span>";
         }
 
