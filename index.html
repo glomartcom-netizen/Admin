@@ -1312,29 +1312,23 @@ console.error("Liquidity load error",e);
 
 }
   
-async function checkSwapStatus(){  
-  
-const mode = await contract.pancakeSwapEnabled();  
-  
-const statusEl = document.getElementById("adminStatus");  
-  
-const wallet = await signer.getAddress();  
-  
-if(mode){  
-  
-statusEl.innerHTML =  
-"Verified: " + wallet.slice(0,6) + "..." + wallet.slice(-4) +  
-" <span class='text-red-500'>[PANCAKE MODE]</span>";  
-  
-}else{  
-  
-statusEl.innerHTML =  
-"Verified: " + wallet.slice(0,6) + "..." + wallet.slice(-4) +  
-" <span class='text-green-500'>[INTERNAL SWAP]</span>";  
-  
-}  
-  
-}  
+async function checkSwapStatus(){
+
+    const mode = await contract.pancakeSwapEnabled();
+    const wallet = await signer.getAddress();
+
+    const statusEl = document.getElementById("adminStatus");
+
+    let base = "Verified: " + wallet.slice(0,6) + "..." + wallet.slice(-4);
+
+    if(mode){
+        base += " <span class='text-red-500'>[PANCAKE MODE]</span>";
+    }else{
+        base += " <span class='text-green-500'>[INTERNAL SWAP]</span>";
+    }
+
+    statusEl.innerHTML = base; // ✅ ONLY BASE SET
+}
   
         // ---------- RENDER BOARD ----------  
 function renderBoard(id,data){  
