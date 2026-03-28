@@ -943,16 +943,18 @@ userAddress = addr;
 setInterval(async () => {
     try {
         if (!userAddress) {
-            // Try to sync if wallet is already connected to the browser
             const walletProvider = window.appKitModal.getWalletProvider();
             if (walletProvider) await window.syncWallet();
         } else {
-            // If already connected, just refresh UI and Data
+
+            if (!contract || !signer) return; // ✅ ONLY ADD THIS
+
             await handleUIUpdate(true);
-            
+
             if (typeof loadStats === "function") await loadStats();
             if (typeof loadLiquidity === "function") await loadLiquidity();
             if (typeof checkSwapStatus === "function") await checkSwapStatus();
+            if (typeof checkAutoSwapStatus === "function") await checkAutoSwapStatus();
         }
     } catch (err) {
         console.error("Interval Refresh Error:", err);
