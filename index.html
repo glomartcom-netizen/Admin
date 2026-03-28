@@ -1255,44 +1255,60 @@ await txWrap(contract.togglePancakeSwap(state));
   
   
 // CONTRACT LIQUIDITY  
-  
+
 async function loadLiquidity(){  
-  
+
 if(!contract) return;  
-  
+
 try{  
-  
+
 const usdtAddr = await contract.usdt();  
 const dmxAddr = await contract.dmx();  
-  
+
 const usdtToken = new ethers.Contract(  
 usdtAddr,  
 ["function balanceOf(address) view returns(uint256)"],  
 provider  
 );  
-  
+
 const dmxToken = new ethers.Contract(  
 dmxAddr,  
 ["function balanceOf(address) view returns(uint256)"],  
 provider  
 );  
-  
+
 const usdtBal = await usdtToken.balanceOf(contractAddress);  
 const dmxBal = await dmxToken.balanceOf(contractAddress);  
-  
+
+// UI UPDATE
 document.getElementById("statContractUSDT").innerText =  
 Number(ethers.utils.formatUnits(usdtBal,18)).toLocaleString();  
-  
+
 document.getElementById("statContractDMX2").innerText =  
 Number(ethers.utils.formatEther(dmxBal)).toLocaleString();  
-  
+
+
+// 🔥 LOW LIQUIDITY WARNING (NO DUPLICATE)
+const dmxValue = Number(ethers.utils.formatEther(dmxBal));
+
+const statusEl = document.getElementById("adminStatus");
+
+// remove old warning (clean)
+statusEl.innerHTML = statusEl.innerHTML.replace(/\[LOW DMX LIQUIDITY\]/g, "");
+
+// add only once if needed
+if(dmxValue < 10000){
+    statusEl.innerHTML += 
+    " <span class='text-red-500'>[LOW DMX LIQUIDITY]</span>";
+}
+
 }catch(e){  
-  
+
 console.error("Liquidity load error",e);  
-  
+
 }  
-  
-        }  
+
+}
   
 async function checkSwapStatus(){  
   
