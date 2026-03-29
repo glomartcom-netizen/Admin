@@ -303,43 +303,68 @@ Load Leaderboards
   
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">  
   
-<div class="space-y-4">  
+<div class="space-y-6">  
   
-<div class="flex gap-4 items-end">  
-  
+<!-- 🔹 LEVEL % (COMMISSION) -->
+<div class="bg-gray-900 p-4 rounded-xl border border-white/10 space-y-3">
+
+<label class="text-xs text-gray-400">Level Commission %</label>
+
+<div class="flex gap-3 items-end">  
+
 <input id="lvlId" type="number"  
-placeholder="Level"  
-class="w-28 p-3 rounded-xl">  
-  
+placeholder="Level (1-25)"  
+class="w-28 p-3 rounded-xl bg-gray-800 text-white">  
+
 <input id="lvlBps" type="number"  
-placeholder="Commission BPS"  
-class="flex-1 p-3 rounded-xl">  
-  
+placeholder="BPS (100 = 1%)"  
+class="flex-1 p-3 rounded-xl bg-gray-800 text-white">  
+
 <button onclick="setLevelPct()"  
 class="bg-emerald-600 px-6 py-3 rounded-xl font-bold text-white">  
-Save  
+Set %  
 </button>  
-  
+
 </div>  
-  
-<div class="flex gap-4 items-end">  
-  
-<input id="volLvlId" type="number"  
-placeholder="Level"  
-class="w-28 p-3 rounded-xl">  
-  
-<input id="volAmt" type="number"  
-placeholder="Volume"  
-class="flex-1 p-3 rounded-xl">  
-  
-<button onclick="setLevelVol()"  
+
+</div>
+
+
+<!-- 🔥 UNLOCK SYSTEM (DIRECT / VOLUME) -->
+<div class="bg-gray-900 p-4 rounded-xl border border-white/10 space-y-3">
+
+<label class="text-xs text-gray-400">Unlock Control</label>
+
+<select id="modeType"  
+class="w-full p-3 rounded-xl bg-gray-800 text-white">  
+<option value="1">Direct Count</option>  
+<option value="2">Team Volume</option>  
+</select>  
+
+<div class="flex gap-3 items-end">  
+
+<input id="levelInput" type="number"  
+placeholder="Level (1-25)"  
+class="w-28 p-3 rounded-xl bg-gray-800 text-white">  
+
+<input id="valueInput" type="number"  
+placeholder="Value"  
+class="flex-1 p-3 rounded-xl bg-gray-800 text-white">  
+
+<button onclick="setLevelRule()"  
 class="bg-purple-600 px-6 py-3 rounded-xl font-bold text-white">  
-Save  
+Apply  
 </button>  
-  
+
+</div>  
+
+</div>
+
 </div>  
   
 </div>  
+  
+</section>
   
   
 <div class="bg-black/40 p-6 rounded-2xl space-y-4">  
@@ -1083,24 +1108,92 @@ async function updateMinStake() {
     if(val) await txWrap(contract.setMinStake(val));  
 }  
   
+// ==============================
+// 🔹 LIMITS (MIN CLAIM + CAP)
+// ==============================
 async function setLimits() {  
-    const minClaim = document.getElementById('minClaim').value;  
-    const incCap = document.getElementById('incCap').value;  
-    if (minClaim) await txWrap(contract.setMinClaim(minClaim));  
-    if (incCap) await txWrap(contract.setIncomeCap(incCap));  
-}  
-  
+
+    const minClaim = document.getElementById('minClaim')?.value;  
+    const incCap = document.getElementById('incCap')?.value;  
+
+    // 🔹 MIN CLAIM
+    if(minClaim){
+        if(minClaim <= 0){
+            alert("Invalid Min Claim");
+            return;
+        }
+        await txWrap(contract.setMinClaim(Number(minClaim)));
+    }
+
+    // 🔹 INCOME CAP
+    if(incCap){
+        if(incCap <= 0){
+            alert("Invalid Income Cap (ex: 4)");
+            return;
+        }
+
+        if(incCap > 10){
+            alert("Too high (Max 10 recommended)");
+            return;
+        }
+
+        await txWrap(contract.setIncomeCap(Number(incCap)));
+    }
+
+    alert("Limits Updated ✅");
+}
+
+
+// ==============================
+// 🔹 MANUAL PRICE
+// ==============================
 async function setPrice() {   
-    const price = document.getElementById('manPrice').value;  
-    await txWrap(contract.setManualPrice(ethers.utils.parseUnits(price, 18)));   
-}  
-  
+
+    const price = document.getElementById('manPrice')?.value;
+
+    if(!price || price <= 0){
+        alert("Enter valid price");
+        return;
+    }
+
+    await txWrap(
+        contract.setManualPrice(
+            ethers.utils.parseUnits(price.toString(), 18)
+        )
+    );
+
+    alert("Price Updated ✅");
+}
+
+
+// ==============================
+// 🔹 BONUSES
+// ==============================
 async function setBonuses() {   
-    const dirPct = document.getElementById('dirPct').value;  
-    const restkPct = document.getElementById('restkPct').value;  
-    if (dirPct) await txWrap(contract.setDirectPercent(dirPct));  
-    if (restkPct) await txWrap(contract.setRestakeBonus(restkPct));  
-}  
+
+    const dirPct = document.getElementById('dirPct')?.value;  
+    const restkPct = document.getElementById('restkPct')?.value;  
+
+    // 🔹 DIRECT %
+    if(dirPct){
+        if(dirPct < 0 || dirPct > 100){
+            alert("Direct % must be 0-100");
+            return;
+        }
+        await txWrap(contract.setDirectPercent(Number(dirPct)));
+    }
+
+    // 🔹 RESTAKE %
+    if(restkPct){
+        if(restkPct < 0 || restkPct > 100){
+            alert("Restake % must be 0-100");
+            return;
+        }
+        await txWrap(contract.setRestakeBonus(Number(restkPct)));
+    }
+
+    alert("Bonuses Updated ✅");
+}
   
 async function manualReward() {  
     const addr = document.getElementById("rewardAddr").value;  
@@ -1110,11 +1203,50 @@ async function manualReward() {
     await txWrap(contract.manualReward(addr, amt, reason));  
 }  
   
-async function setLevelVol() {   
-    const lvlId = document.getElementById('volLvlId').value;  
-    const volAmt = document.getElementById('volAmt').value;   
-    await txWrap(contract.setLevelUnlockVolume(lvlId, volAmt));   
-}  
+// 🔹 LEVEL %
+async function setLevelPct(){
+
+    const level = document.getElementById("lvlId").value;
+    const bps = document.getElementById("lvlBps").value;
+
+    if(level < 1 || level > 25){
+        alert("Invalid Level");
+        return;
+    }
+
+    if(bps < 0){
+        alert("Invalid %");
+        return;
+    }
+
+    await txWrap(contract.setLevelPercent(Number(level), Number(bps)));
+
+    alert("Level % Updated ✅");
+}
+
+
+// 🔹 UNLOCK SYSTEM
+async function setLevelRule(){
+
+    const mode = Number(document.getElementById("modeType").value);
+    const level = Number(document.getElementById("levelInput").value);
+    const value = Number(document.getElementById("valueInput").value);
+
+    if(level < 1 || level > 25){
+        alert("Invalid Level (1-25)");
+        return;
+    }
+
+    await txWrap(contract.setUnlockMode(mode));
+
+    if(mode === 1){
+        await txWrap(contract.setLevelDirectRequired(level, value));
+    }else{
+        await txWrap(contract.setLevelUnlockVolume(level, value));
+    }
+
+    alert("Unlock Rule Applied ✅");
+}
   
 async function giveRank() {   
     const addr = document.getElementById('uAddr').value;  
@@ -1421,27 +1553,104 @@ document.getElementById("treasuryAddr").value
 }  
   
   
-async function setLevelPct() {   
-    const lvlId = document.getElementById('lvlId').value;  
-    const bps = document.getElementById('lvlBps').value;  
-    await txWrap(contract.setLevelPercent(lvlId, bps));   
-}  
-  
 async function postAnn() {   
-    await txWrap(contract.postAnnouncement(document.getElementById('annMsg').value, document.getElementById('annImg').value));   
-}  
+
+    const msg = document.getElementById('annMsg')?.value.trim();  
+    const img = document.getElementById('annImg')?.value.trim();  
+
+    if(!msg){
+        alert("Enter announcement message");
+        return;
+    }
+
+    if(msg.length > 200){
+        alert("Message too long (max 200 chars)");
+        return;
+    }
+
+    // optional image validation
+    if(img && !img.startsWith("http")){
+        alert("Invalid Image URL");
+        return;
+    }
+
+    await txWrap(
+        contract.postAnnouncement(msg, img || "")
+    );
+
+    alert("Announcement Posted ✅");
+}
   
+// 🔹 MANUAL UNLOCK
 async function unlLevel() {   
-    await txWrap(contract.unlockLevelManually(document.getElementById('uAddr').value, document.getElementById('unlDays').value || 30));   
-}  
-  
+
+    const addr = document.getElementById('uAddr')?.value;
+    const days = document.getElementById('unlDays')?.value || 30;
+
+    if(!addr || !addr.startsWith("0x") || addr.length !== 42){
+        alert("Invalid Address");
+        return;
+    }
+
+    if(days <= 0){
+        alert("Invalid Days");
+        return;
+    }
+
+    await txWrap(
+        contract.unlockLevelManually(
+            addr,
+            Number(days)
+        )
+    );
+
+    alert("Level Unlocked ✅");
+}
+
+
+// 🔹 CUSTOM CAP
 async function setCustCap() {   
-    await txWrap(contract.setCustomCap(document.getElementById('uAddr').value, document.getElementById('custCap').value));   
-}  
-  
+
+    const addr = document.getElementById('uAddr')?.value;
+    const cap = document.getElementById('custCap')?.value;
+
+    if(!addr || !addr.startsWith("0x") || addr.length !== 42){
+        alert("Invalid Address");
+        return;
+    }
+
+    if(!cap || cap <= 0){
+        alert("Invalid Cap");
+        return;
+    }
+
+    await txWrap(
+        contract.setCustomCap(
+            addr,
+            Number(cap)
+        )
+    );
+
+    alert("Custom Cap Set ✅");
+}
+
+
+// 🔹 RESET CAP
 async function resCap() {   
-    await txWrap(contract.resetCap(document.getElementById('uAddr').value));   
-}  
+
+    const addr = document.getElementById('uAddr')?.value;
+
+    if(!addr || !addr.startsWith("0x") || addr.length !== 42){
+        alert("Invalid Address");
+        return;
+    }
+
+    await txWrap(
+        contract.resetCap(addr)
+    );
+
+    alert("Cap Reset Done ✅");
+}
         async function setPause(s) { txWrap(s ? contract.pause() : contract.unpause()); }  
   
         async function transferOwn() {  
