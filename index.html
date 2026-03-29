@@ -888,6 +888,7 @@ clearInterval(reconnect);
     "function setMaintenanceUnit(uint256)",
     "function toggleAutoSwap(bool)",
     "function autoSwapEnabled() view returns (bool)",
+    "function totalClaimedUSDT() view returns (uint256)",
     "function renounceOwnership()"
 ];  
   
@@ -1742,26 +1743,7 @@ async function checkAutoSwapStatus(){
         console.warn("AutoSwap status error");
     }
 }
-  
-// =============================  
-// AUTO REFRESH CONTRACT BALANCE  
-// =============================  
-  
-setInterval(() => {  
-  
-try{  
-  
-loadLiquidity();  
-loadStats();  
-  
-}catch(e){  
-  
-console.log("Admin auto refresh error");  
-  
-}  
-  
-},15000);  
-  
+   
           
 </script>  
 </body>  
