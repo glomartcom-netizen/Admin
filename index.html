@@ -1015,7 +1015,8 @@ setInterval(async () => {
             contract.totalLevelPaid(),  
             contract.totalRestakeDMX(),  
             contract.getMembersCount(),  
-            contract.isManualPrice()  
+            contract.isManualPrice(),
+            contract.totalClaimedUSDT()
         ]);  
   
         const f = ethers.utils.formatEther;  
@@ -1027,11 +1028,10 @@ document.getElementById('statClaimed').innerText = Number(f(s[2])).toLocaleStrin
 document.getElementById('statDirectPaid').innerText = Number(f(s[3])).toLocaleString();  
 document.getElementById('statLevelPaid').innerText = Number(f(s[4])).toLocaleString();  
 
-document.getElementById('statMembersCount').innerText = s[6].toString();  
+document.getElementById('statMembersCount').innerText = s[6].toString();
 
-// 🔥 NEW ADD
-const claimedUSDT = await contract.totalClaimedUSDT();
-document.getElementById('statClaimedUSDT').innerText = Number(f(claimedUSDT)).toLocaleString();
+// 🔥 USDT CLAIM (OPTIMIZED)
+document.getElementById('statClaimedUSDT').innerText = Number(f(s[8])).toLocaleString();
         
         // CONTRACT DMX BALANCE  
 try {  
