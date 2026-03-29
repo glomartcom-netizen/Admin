@@ -99,14 +99,26 @@ DMX:
   
 <div class="admin-card p-6 border-l-4 border-l-emerald-500">  
 <p class="text-gray-400 text-xs uppercase font-black">Claims & Restake</p>  
-<div class="text-sm mt-3 font-mono">  
+
+<div class="text-sm mt-3 font-mono space-y-2">  
+
+<div>
 Restake:  
 <span id="statRestake" class="text-emerald-400 font-black text-lg stat-value">0</span>  
-<br>  
-Claimed:  
+</div>
+
+<div>
+Claimed DMX:  
 <span id="statClaimed" class="text-white font-black text-lg stat-value">0</span>  
+</div>
+
+<div>
+Claimed USDT:  
+<span id="statClaimedUSDT" class="text-yellow-400 font-black text-lg stat-value">0</span>  
+</div>
+
 </div>  
-</div>  
+</div>
   
 <div class="admin-card p-6 border-l-4 border-l-purple-500">  
 <p class="text-gray-400 text-xs uppercase font-black">Total Payouts</p>  
@@ -1007,16 +1019,20 @@ setInterval(async () => {
         ]);  
   
         const f = ethers.utils.formatEther;  
-  
-        document.getElementById('statUSDT').innerText = Number(f(s[0])).toLocaleString();  
-        document.getElementById('statDMX').innerText = Number(f(s[1])).toLocaleString();  
-        document.getElementById('statRestake').innerText = Number(f(s[5])).toLocaleString();  
-        document.getElementById('statClaimed').innerText = Number(f(s[2])).toLocaleString();  
-        document.getElementById('statDirectPaid').innerText = Number(f(s[3])).toLocaleString();  
-        document.getElementById('statLevelPaid').innerText = Number(f(s[4])).toLocaleString();  
-  
-        document.getElementById('statMembersCount').innerText = s[6].toString();  
-  
+
+document.getElementById('statUSDT').innerText = Number(f(s[0])).toLocaleString();  
+document.getElementById('statDMX').innerText = Number(f(s[1])).toLocaleString();  
+document.getElementById('statRestake').innerText = Number(f(s[5])).toLocaleString();  
+document.getElementById('statClaimed').innerText = Number(f(s[2])).toLocaleString();  
+document.getElementById('statDirectPaid').innerText = Number(f(s[3])).toLocaleString();  
+document.getElementById('statLevelPaid').innerText = Number(f(s[4])).toLocaleString();  
+
+document.getElementById('statMembersCount').innerText = s[6].toString();  
+
+// 🔥 NEW ADD
+const claimedUSDT = await contract.totalClaimedUSDT();
+document.getElementById('statClaimedUSDT').innerText = Number(f(claimedUSDT)).toLocaleString();
+        
         // CONTRACT DMX BALANCE  
 try {  
   
