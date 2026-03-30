@@ -1,1 +1,3259 @@
+<!DOCTYPE html>  
+<html lang="ta">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>DimeX | Master Admin </title>  
+    <script src="https://cdn.tailwindcss.com"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>  
+    <style>  
+        /* Professional Dark Admin Palette with Depth */  
+        body {   
+            background: linear-gradient(180deg, #020617 0%, #0b1220 100%);  
+            color: #f8fafc;   
+            min-height: 100vh;  
+        }  
+          
+        /* Admin Cards - Enhanced Contrast */  
+        .admin-card {   
+            background: #111827;   
+            border: 1px solid #1e293b;   
+            border-radius: 18px;  
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);  
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);   
+        }  
+          
+        /* Premium Glow Hover Effect */  
+        .admin-card:hover {   
+            border-color: #38bdf8;   
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.15), 0 10px 25px -5px rgba(0, 0, 0, 0.6);  
+            transform: translateY(-4px);  
+        }  
+          
+        .gradient-text {   
+            background: linear-gradient(90deg, #38bdf8, #22d3ee);   
+            -webkit-background-clip: text;   
+            -webkit-text-fill-color: transparent;   
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));  
+        }  
+  
+        /* High Visibility Labels */  
+        label { color: #94a3b8; font-weight: 700; letter-spacing: 0.05em; }  
+          
+        /* Buttons with Better Feedback */  
+        .btn-action {   
+            transition: all 0.2s ease;   
+            cursor: pointer;   
+            border-radius: 12px;   
+            font-weight: 800;  
+            text-transform: uppercase;  
+            letter-spacing: 0.025em;  
+        }  
+        .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }  
+        .btn-action:active { transform: scale(0.96); }  
+          
+        /* Inputs - Solid Contrast */  
+        input {   
+            background: #020617 !important;   
+            border: 1px solid #334155 !important;   
+            color: #ffffff !important;   
+            outline: none;   
+            padding: 10px;  
+            font-weight: 500;  
+        }  
+        input:focus {   
+            border-color: #38bdf8 !important;   
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);   
+        }  
+          
+        /* Stats Glow */  
+        .stat-value { text-shadow: 0 0 15px rgba(255,255,255,0.2); }  
+    </style>  
+</head>  
+<body class="font-sans pb-20">  
+  
+    <header class="p-6 border-b border-white/10 bg-[#111827]/80 sticky top-0 z-50 backdrop-blur-xl flex justify-between items-center">  
+        <div>  
+            <h1 class="text-3xl font-black gradient-text tracking-tighter">DIMEX ADMIN</h1>  
+            <p id="adminStatus" class="text-[11px] text-blue-400 uppercase tracking-widest font-bold mt-1">● Awaiting Connection...</p>  
+        </div>  
+        <button id="walletBtn"    
+onclick="window.appKitModal.open()" class="bg-[#38bdf8] hover:bg-blue-400 text-black px-8 py-3 btn-action shadow-xl text-sm">Connect Admin</button>  
+    </header>  
+  
+    <main id="adminPanel" class="p-6 max-w-[1440px] mx-auto opacity-20 pointer-events-none transition-opacity duration-700">  
+  
+<!-- STATS -->  
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">  
+  
+<div class="admin-card p-6 border-l-4 border-l-blue-500">  
+<p class="text-gray-400 text-xs uppercase font-black">Total Staked</p>  
+<div class="text-sm mt-3 font-mono">  
+USDT:  
+<span id="statUSDT" class="text-white font-black text-lg stat-value">0</span>  
+<br>  
+DMX:  
+<span id="statDMX" class="text-cyan-400 font-black text-lg stat-value">0</span>  
+</div>  
+</div>  
+  
+<div class="admin-card p-6 border-l-4 border-l-emerald-500">  
+<p class="text-gray-400 text-xs uppercase font-black">Claims & Restake</p>  
 
+<div class="text-sm mt-3 font-mono space-y-2">  
+
+<div>
+Restake:  
+<span id="statRestake" class="text-emerald-400 font-black text-lg stat-value">0</span>  
+</div>
+
+<div>
+Claimed DMX:  
+<span id="statClaimed" class="text-white font-black text-lg stat-value">0</span>  
+</div>
+
+<div>
+Claimed USDT:  
+<span id="statClaimedUSDT" class="text-yellow-400 font-black text-lg stat-value">0</span>  
+</div>
+
+</div>  
+</div>
+  
+<div class="admin-card p-6 border-l-4 border-l-purple-500">  
+<p class="text-gray-400 text-xs uppercase font-black">Total Payouts</p>  
+<div class="text-sm mt-3 font-mono">  
+Direct:  
+<span id="statDirectPaid" class="text-purple-400 font-black text-lg stat-value">0</span>  
+<br>  
+Level:  
+<span id="statLevelPaid" class="text-white font-black text-lg stat-value">0</span>  
+</div>  
+</div>  
+  
+<div class="admin-card p-6 border-l-4 border-l-yellow-500">  
+<p class="text-yellow-500 text-xs uppercase font-black">Network Stats</p>  
+  
+<div class="text-sm mt-3 font-mono">  
+  
+Pending:  
+<span id="statPending" class="text-yellow-400 font-black text-lg stat-value">0</span>  
+  
+<br>  
+  
+Users:  
+<span id="statMembersCount" class="text-white font-black text-lg stat-value">0</span>  
+  
+<br>  
+  
+DMX Balance:  
+<span id="statContractDMXMain" class="text-cyan-300 font-black text-lg stat-value">0</span>  
+  
+</div>  
+</div>  
+  
+</div> <!-- STATS GRID CLOSE -->  
+  
+<div class="flex justify-center mb-10">  
+  
+<button onclick="loadStats()"  
+class="bg-cyan-600 px-6 py-3 rounded-xl text-white font-bold">  
+Refresh Stats  
+</button>  
+  
+</div>  
+  
+<!-- MAIN GRID -->  
+<section class="admin-card p-8">  
+    <h2 class="text-xl font-black mb-6 text-cyan-400 uppercase border-b border-white/10 pb-3">  
+        ⚙️ Protocol Engine  
+    </h2>  
+  
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">  
+        <div class="space-y-6">  
+            <label class="text-xs uppercase">Reward BPS (90 / 180 / 365)</label>  
+            <div class="flex gap-3">  
+                <input id="r90" type="number" placeholder="90 days" class="w-full p-3 rounded-xl text-center">  
+                <input id="r180" type="number" placeholder="180 days" class="w-full p-3 rounded-xl text-center">  
+                <input id="r365" type="number" placeholder="365 days" class="w-full p-3 rounded-xl text-center">  
+                <button onclick="setRates()" class="bg-slate-700 px-6 py-3 rounded-xl font-bold btn-action">Update</button>  
+            </div>  
+  
+            <div class="space-y-2">  
+                <label class="text-xs uppercase">Min Stake (DMX)</label>  
+                <div class="flex gap-3">  
+                    <input id="minStakeInput" type="number" placeholder="e.g. 2500" class="flex-1 p-3 rounded-xl">  
+                    <button onclick="updateMinStake()" class="bg-indigo-600 px-6 py-3 rounded-xl font-bold text-white btn-action">SET</button>  
+                </div>  
+            </div>  
+  
+            <div class="flex gap-4">  
+                <div class="flex-1">  
+                    <label class="text-xs uppercase">Min Claim</label>  
+                    <input id="minClaim" type="number" class="w-full p-3 rounded-xl">  
+                </div>  
+                <div class="flex-1">  
+                    <label class="text-xs uppercase">Income Cap</label>  
+                    <input id="incCap" type="number" class="w-full p-3 rounded-xl">  
+                </div>  
+                <button onclick="setLimits()" class="bg-blue-600 px-6 py-3 rounded-xl font-bold text-white btn-action">Set</button>  
+            </div>  
+        </div>  
+  
+        <div class="space-y-6">  
+            <label class="text-xs uppercase">  
+                Price Mode : <span id="priceStatus" class="font-bold ml-2 text-yellow-400">SYNCING</span>  
+            </label>  
+            <div class="flex gap-3">  
+                <input id="manPrice" type="number" step="0.000001" placeholder="Manual Price" class="flex-1 p-3 rounded-xl">  
+                <button onclick="setPrice()" class="bg-yellow-600 px-5 py-3 rounded-xl font-bold text-white btn-action">SET</button>  
+                <button onclick="togglePrice()" class="bg-green-600 px-5 py-3 rounded-xl font-bold text-white btn-action">LIVE</button>  
+            </div>  
+  
+            <div class="flex gap-4">  
+                <div class="flex-1">  
+                    <label class="text-xs uppercase">Direct %</label>  
+                    <input id="dirPct" type="number" class="w-full p-3 rounded-xl">  
+                </div>  
+                <div class="flex-1">  
+                    <label class="text-xs uppercase">Restake %</label>  
+                    <input id="restkPct" type="number" class="w-full p-3 rounded-xl">  
+                </div>  
+                <button onclick="setBonuses()" class="bg-blue-600 px-6 py-3 rounded-xl font-bold text-white btn-action">Set</button>  
+            </div>  
+        </div>  
+    </div>  
+</section>  
+  
+  
+<!-- 👥 MEMBERS + ACTIVITY (FINAL CLEAN FIXED) -->
+
+<section class="admin-card p-8">
+
+<h2 class="text-xl font-black text-purple-400 mb-6">
+👥 Members & Activity
+</h2>
+
+<!-- TOTAL -->
+<div class="mb-3 text-sm text-gray-300">
+Total Members: <span id="memberCount" class="text-white font-bold">0</span>
+</div>
+
+<!-- BUTTONS -->
+<div class="flex flex-wrap gap-3 mb-4">
+
+<button onclick="loadMembers(); showDownload('members')" id="btnMembers"
+class="bg-purple-600 px-4 py-2 rounded-xl text-white font-bold">
+Members
+</button>
+
+<button onclick="loadTransactions(); showDownload('tx')" id="btnTx"
+class="bg-yellow-600 px-4 py-2 rounded-xl text-white font-bold">
+Transactions
+</button>
+
+<button onclick="loadClaims(); showDownload('claims')" id="btnClaims"
+class="bg-green-600 px-4 py-2 rounded-xl text-white font-bold">
+Claims
+</button>
+
+<button onclick="openFullView(lastMembersData)"
+class="bg-indigo-600 px-4 py-2 rounded-xl text-white font-bold">
+Full View
+</button>
+
+</div>
+
+<!-- MEMBERS LIST -->
+<div id="membersBox"
+class="bg-black/40 p-4 rounded-xl text-sm font-mono max-h-80 overflow-y-auto">
+No Data
+</div>
+
+<!-- 📊 TRANSACTIONS -->
+<p class="text-xs text-yellow-400 mt-3">📊 Transactions</p>
+<div id="txBox"
+class="bg-black/40 p-4 rounded-xl text-sm mt-2">
+No Transactions
+</div>
+
+<!-- 🪙 CLAIMS -->
+<p class="text-xs text-green-400 mt-3">🪙 Claims</p>
+<div id="claimBox"
+class="bg-black/40 p-4 rounded-xl text-sm mt-2">
+No Claims
+</div>
+
+<!-- DOWNLOAD -->
+<button id="downloadBtn"
+onclick="downloadMembers(lastMembersData)"
+class="bg-green-600 px-4 py-2 rounded mt-3 hidden">
+Download CSV
+</button>
+
+<!-- SEARCH -->
+<div class="mt-6 space-y-3">
+
+<input id="searchUser"
+placeholder="Search Wallet Address"
+class="w-full p-3 rounded-xl">
+
+<button onclick="searchUser()"
+class="bg-blue-600 px-6 py-2 rounded-xl text-white font-bold">
+Search User
+</button>
+
+<div id="userResult"
+class="text-sm text-gray-300"></div>
+
+</div>
+
+</section>
+
+ <!-- 🔥 FULL VIEW POPUP -->
+<div id="popup" class="fixed inset-0 bg-black/80 backdrop-blur hidden z-50 flex items-center justify-center">
+
+<div class="bg-[#111827] p-6 rounded-2xl w-[90%] max-w-2xl max-h-[80vh] overflow-y-auto">
+
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-lg font-bold text-white">Full Data View</h2>
+
+<button onclick="closePopup()" 
+class="bg-red-600 px-3 py-1 rounded text-white font-bold">
+Close
+</button>
+</div>
+
+<div id="popupContent" class="text-sm font-mono"></div>
+
+</div>
+
+</div>       
+  
+  
+<!-- TOP LEADERS -->  
+  
+<section class="admin-card p-8">  
+  
+<h2 class="text-xl font-black text-yellow-400 mb-6">  
+🏆 Leaderboards  
+</h2>  
+  
+<button onclick="loadLeaderboards()"  
+class="bg-yellow-600 px-6 py-3 rounded-xl text-white font-bold mb-4">  
+Load Leaderboards  
+</button>  
+  
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">  
+  
+<div>  
+<h3 class="text-cyan-400 font-bold mb-2">Top Stakers</h3>  
+<div id="topStakers" class="bg-black/40 p-4 rounded-xl text-sm font-mono max-h-80 overflow-y-auto"></div>  
+
+<button onclick="openFullView(topStakersData)"  
+class="mt-2 bg-indigo-600 px-4 py-2 rounded text-white text-sm">
+Full View
+</button>
+</div>  
+  
+<div>  
+<h3 class="text-green-400 font-bold mb-2">Top Team Builders</h3>  
+<div id="topTeam" class="bg-black/40 p-4 rounded-xl text-sm font-mono max-h-80 overflow-y-auto"></div>  
+
+<button onclick="openFullView(topTeamData)"  
+class="mt-2 bg-indigo-600 px-4 py-2 rounded text-white text-sm">
+Full View
+</button>
+</div>  
+  
+<div>  
+<h3 class="text-orange-400 font-bold mb-2">Top Direct Sponsors</h3>  
+<div id="topDirect" class="bg-black/40 p-4 rounded-xl text-sm font-mono max-h-80 overflow-y-auto"></div>  
+
+<button onclick="openFullView(topDirectData)"  
+class="mt-2 bg-indigo-600 px-4 py-2 rounded text-white text-sm">
+Full View
+</button>
+</div>  
+  
+<div>  
+<h3 class="text-purple-400 font-bold mb-2">Top Earners</h3>  
+<div id="topEarners" class="bg-black/40 p-4 rounded-xl text-sm font-mono max-h-80 overflow-y-auto"></div>  
+
+<button onclick="openFullView(topEarnersData)"  
+class="mt-2 bg-indigo-600 px-4 py-2 rounded text-white text-sm">
+Full View
+</button>
+</div>  
+  
+</div>  
+  
+</section>
+
+<!-- MATRIX -->  
+<section class="admin-card p-8">  
+  
+<h2 class="text-xl font-black mb-6 text-emerald-400 uppercase border-b border-white/10 pb-3">  
+📊 Network Matrix  
+</h2>  
+  
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">  
+  
+<div class="space-y-6">  
+  
+<!-- 🔹 LEVEL % (COMMISSION) -->
+<div class="bg-gray-900 p-4 rounded-xl border border-white/10 space-y-3">
+
+<label class="text-xs text-gray-400">Level Commission %</label>
+
+<div class="flex gap-3 items-end">  
+
+<input id="lvlId" type="number"  
+placeholder="Level (1-25)"  
+class="w-28 p-3 rounded-xl bg-gray-800 text-white">  
+
+<input id="lvlBps" type="number"  
+placeholder="BPS (100 = 1%)"  
+class="flex-1 p-3 rounded-xl bg-gray-800 text-white">  
+
+<button onclick="setLevelPct()"  
+class="bg-emerald-600 px-6 py-3 rounded-xl font-bold text-white">  
+Set %  
+</button>  
+
+</div>  
+
+</div>
+
+
+<!-- 🔥 UNLOCK SYSTEM (DIRECT / VOLUME) -->
+<div class="bg-gray-900 p-4 rounded-xl border border-white/10 space-y-3">
+
+<label class="text-xs text-gray-400">Unlock Control</label>
+
+<select id="modeType"  
+class="w-full p-3 rounded-xl bg-gray-800 text-white">  
+<option value="1">Direct Count</option>  
+<option value="2">Team Volume</option>  
+</select>  
+
+<div class="flex gap-3 items-end">  
+
+<input id="levelInput" type="number"  
+placeholder="Level (1-25)"  
+class="w-28 p-3 rounded-xl bg-gray-800 text-white">  
+
+<input id="valueInput" type="number"  
+placeholder="Value"  
+class="flex-1 p-3 rounded-xl bg-gray-800 text-white">  
+
+<button onclick="setLevelRule()"  
+class="bg-purple-600 px-6 py-3 rounded-xl font-bold text-white">  
+Apply  
+</button>  
+
+</div>  
+
+</div>
+
+</div>  
+  
+</div>  
+  
+</section>
+  
+  
+<div class="bg-black/40 p-6 rounded-2xl space-y-4">  
+  
+<h3 class="text-sm font-bold text-blue-400 uppercase">  
+Global Announcement  
+</h3>  
+  
+<input id="annMsg"  
+type="text"  
+placeholder="Announcement message..."  
+class="w-full p-3 rounded-xl">  
+  
+<input id="annImg"  
+type="text"  
+placeholder="Image URL (optional)"  
+class="w-full p-3 rounded-xl">  
+  
+<button onclick="postAnn()"  
+class="w-full bg-[#38bdf8] text-black py-3 rounded-xl font-bold">  
+POST ANNOUNCEMENT  
+</button>  
+  
+</div>  
+  
+</div>  
+  
+</section>  
+  
+</div>  
+  
+  
+<!-- RIGHT SIDE -->  
+<div class="space-y-8">  
+  
+<!-- USER CONTROL -->  
+<section class="admin-card p-8 border-t-4 border-yellow-500">  
+  
+<h2 class="text-xl font-black mb-6 text-yellow-500 uppercase">  
+👤 User Control  
+</h2>  
+  
+<div class="space-y-4">  
+  
+<input id="uAddr"  
+type="text"  
+placeholder="User Wallet Address"  
+class="w-full p-4 rounded-xl">  
+  
+<div class="grid grid-cols-2 gap-4">  
+  
+<div>  
+<input id="unlDays"  
+type="number"  
+placeholder="Unlock Days"  
+class="w-full p-3 rounded-xl">  
+  
+<button onclick="unlLevel()"  
+class="w-full mt-2 bg-blue-600 py-3 rounded-xl font-bold text-white">  
+Unlock  
+</button>  
+</div>  
+  
+<div>  
+<input id="custCap"  
+type="number"  
+placeholder="Custom Cap"  
+class="w-full p-3 rounded-xl">  
+  
+<button onclick="setCustCap()"  
+class="w-full mt-2 bg-pink-600 py-3 rounded-xl font-bold text-white">  
+Set Cap  
+</button>  
+</div>  
+  
+</div>  
+  
+<input id="rankAmt"  
+type="number"  
+placeholder="Rank Reward Amount"  
+class="w-full p-3 rounded-xl">  
+  
+<input id="rankName"  
+type="text"  
+placeholder="Rank Name"  
+class="w-full p-3 rounded-xl">  
+  
+<div class="grid grid-cols-2 gap-4">  
+  
+<button onclick="resCap()"  
+class="bg-slate-700 py-3 rounded-xl font-bold">  
+Reset 4X  
+</button>  
+  
+<button onclick="giveRank()"  
+class="bg-orange-600 py-3 rounded-xl font-bold text-white">  
+Give Rank  
+</button>  
+  
+</div>  
+  
+</div>  
+  
+</section>  
+  
+<!-- SECURITY -->  
+<section class="admin-card p-8 border-red-500/40 bg-red-950/10">  
+  
+<h2 class="text-xl font-black mb-6 text-red-500 uppercase">  
+🚨 Security Controls  
+</h2>  
+  
+<div class="space-y-8">  
+  
+<!-- SYSTEM CONTROL -->  
+<div>  
+<h3 class="text-sm font-bold mb-3 text-red-400 uppercase">  
+System Control  
+</h3>  
+  
+<div class="grid grid-cols-2 gap-4">  
+  
+<button onclick="setPause(true)"  
+class="bg-red-600 py-3 rounded-xl font-bold text-white hover:bg-red-700">  
+Pause Contract  
+</button>  
+  
+<button onclick="setPause(false)"  
+class="bg-green-600 py-3 rounded-xl font-bold text-white hover:bg-green-700">  
+Unpause Contract  
+</button>  
+  
+</div>  
+</div>  
+  
+<!-- SWAP ENGINE CONTROL -->  
+  
+<section class="admin-card p-8 border-t-4 border-cyan-500 mt-8">  
+  
+<h2 class="text-xl font-black mb-6 text-cyan-400 uppercase">  
+🔄 Swap Engine Control  
+</h2>  
+  
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">  
+  
+<!-- SWAP MODE -->  
+  
+<div class="space-y-4">  
+  
+<label class="text-xs uppercase">  
+Swap Mode Control  
+</label>  
+  
+<div class="flex gap-4">  
+  
+<button onclick="updateSwapMode(false)"  
+class="flex-1 bg-green-600 py-3 rounded-xl font-bold text-white hover:bg-green-700 btn-action">  
+  
+ENABLE INTERNAL SWAP  
+  
+</button>  
+  
+<button onclick="updateSwapMode(true)"  
+class="flex-1 bg-red-600 py-3 rounded-xl font-bold text-white hover:bg-red-700 btn-action">  
+  
+ENABLE PANCAKE MODE  
+  
+</button>  
+  
+</div>  
+  
+<p class="text-[11px] text-gray-400">  
+  
+Internal Swap → Dashboard swap    
+Pancake Mode → Only PancakeSwap  
+  
+</p>  
+  
+</div>  
+  
+  
+<!-- LIQUIDITY CHECK -->  
+  
+<div class="space-y-4">  
+  
+<label class="text-xs uppercase">  
+Contract Liquidity  
+</label>  
+  
+<div class="grid grid-cols-2 gap-4">  
+  
+<div class="bg-black/40 p-4 rounded-xl border border-white/5">  
+  
+<p class="text-[10px] text-gray-400">  
+USDT Balance  
+</p>  
+  
+<span id="statContractUSDT"  
+class="text-white font-black text-lg">  
+  
+0  
+  
+</span>  
+  
+</div>  
+  
+<div class="bg-black/40 p-4 rounded-xl border border-white/5">  
+  
+<p class="text-[10px] text-gray-400">  
+DMX Balance  
+</p>  
+  
+<span id="statContractDMXLiquidity"  
+class="text-cyan-400 font-black text-lg">
+  
+0  
+  
+</span>  
+  
+</div>  
+  
+</div>  
+  
+<button onclick="loadLiquidity()"  
+class="w-full bg-slate-700 py-2 rounded-lg text-xs font-bold uppercase">  
+  
+Refresh Liquidity  
+  
+</button>  
+  
+</div>  
+  
+</div>  
+  
+</section>      
+  
+  
+<!-- EMERGENCY TOKEN RECOVERY -->  
+<div class="border-t border-white/10 pt-6">  
+  
+<h3 class="text-sm font-bold mb-3 text-yellow-400 uppercase">  
+Emergency Asset Recovery  
+</h3>  
+  
+<input id="ewTok"  
+placeholder="Token Contract Address"  
+class="w-full p-3 rounded-xl mb-2">  
+  
+<input id="ewRec"  
+placeholder="Receiver Wallet Address"  
+class="w-full p-3 rounded-xl mb-2">  
+  
+<input id="ewAmt"  
+placeholder="Amount"  
+class="w-full p-3 rounded-xl mb-4">  
+  
+<button onclick="emgWithdraw()"  
+class="w-full bg-red-600 py-3 rounded-xl font-bold text-white hover:bg-red-700">  
+Recover Tokens  
+</button>  
+  
+</div>  
+  
+  
+<!-- MANUAL REWARD -->  
+<div class="border-t border-white/10 pt-6">  
+  
+<h3 class="text-sm font-bold mb-3 text-green-400 uppercase">  
+Manual Reward  
+</h3>  
+  
+<input id="rewardAddr"  
+placeholder="User Wallet Address"  
+class="w-full p-3 rounded-xl mb-2">  
+  
+<input id="rewardAmt"  
+placeholder="Reward Amount (DMX)"  
+class="w-full p-3 rounded-xl mb-2">  
+  
+<input id="rewardReason"  
+placeholder="Reward Reason"  
+class="w-full p-3 rounded-xl mb-4">  
+  
+<button onclick="manualReward()"  
+class="w-full bg-green-600 py-3 rounded-xl font-bold text-white hover:bg-green-700">  
+Send Reward  
+</button>  
+  
+</div>  
+  
+  
+<!-- TREASURY WALLET -->  
+<div class="border-t border-white/10 pt-6">  
+  
+<h3 class="text-sm font-bold mb-3 text-indigo-400 uppercase">  
+Treasury Wallet  
+</h3>  
+  
+<input id="treasuryAddr"  
+type="text"  
+placeholder="New Treasury Wallet Address"  
+class="w-full p-3 rounded-xl mb-4">  
+  
+<button onclick="changeTreasury()"  
+class="w-full bg-indigo-600 py-3 rounded-xl font-bold text-white hover:bg-indigo-700">  
+Update Treasury Wallet  
+</button>  
+  
+</div>  
+
+<!-- RESCUE ETH -->
+<div class="border-t border-white/10 pt-6">
+
+<h3 class="text-sm font-bold mb-3 text-yellow-400 uppercase">
+Rescue BNB (ETH)
+</h3>
+
+<input id="ethAmt"
+placeholder="Amount (BNB)"
+class="w-full p-3 rounded-xl mb-4">
+
+<button onclick="rescueETH()"
+class="w-full bg-yellow-600 py-3 rounded-xl font-bold text-white hover:bg-yellow-700">
+Rescue BNB
+</button>
+
+</div>  
+
+<div class="space-y-2 mt-6">
+
+<label class="text-xs uppercase">
+Maintenance Unit (DMX = 30 Days)
+</label>
+
+<div class="flex gap-3">
+
+<input id="maintUnit"
+type="number"
+placeholder="e.g. 10000"
+class="flex-1 p-3 rounded-xl">
+
+<button onclick="setMaintenanceUnit()"
+class="bg-orange-600 px-6 py-3 rounded-xl font-bold text-white">
+SET
+</button>
+
+</div>
+
+</div> 
+
+<div class="space-y-4 mt-6">
+
+<label class="text-xs uppercase">
+Auto Swap (Claim System)
+</label>
+
+<div class="flex gap-4">
+
+<button onclick="toggleAutoSwap(true)"
+class="flex-1 bg-green-600 py-3 rounded-xl font-bold text-white">
+AUTO SWAP ON
+</button>
+
+<button onclick="toggleAutoSwap(false)"
+class="flex-1 bg-red-600 py-3 rounded-xl font-bold text-white">
+AUTO SWAP OFF
+</button>
+
+</div>
+
+</div>
+
+  
+<!-- OWNERSHIP CONTROL -->  
+<div class="border-t border-white/10 pt-6">  
+  
+<h3 class="text-sm font-bold mb-3 text-blue-400 uppercase">  
+Ownership Control  
+</h3>  
+  
+<input id="newOwner"  
+type="text"  
+placeholder="New Owner Wallet Address"  
+class="w-full p-3 rounded-xl mb-4">  
+  
+<button onclick="transferOwn()"  
+class="w-full bg-blue-600 py-3 rounded-xl font-bold text-white hover:bg-blue-700">  
+Transfer Ownership  
+</button>  
+  
+</div>  
+  
+</div>  
+  
+</section>  
+  
+</div>  
+  
+</div>  
+  
+    </main>  
+  
+    <script type="module">    
+import { createAppKit } from 'https://esm.sh/@reown/appkit?bundle'    
+import { Ethers5Adapter } from 'https://esm.sh/@reown/appkit-adapter-ethers5?bundle'    
+import { bsc } from 'https://esm.sh/@reown/appkit/networks?bundle'    
+    
+const projectId = '059cc242b0cc96ac9665c598b76ddc7b';    
+    
+const modal = createAppKit({    
+  adapters: [new Ethers5Adapter()],    
+  networks: [bsc],    
+  metadata: {     
+    name: 'DimeX Pro',     
+    url: window.location.origin,     
+    icons: ['https://i.ibb.co/HpqwGFqt/logo.png']     
+  },    
+  projectId,    
+  features: { analytics: true }    
+});    
+    
+window.appKitModal = modal;    
+    
+modal.subscribeState((state) => {    
+  if(state?.isConnected && window.syncWallet){    
+    window.syncWallet();    
+  }    
+});    
+    
+modal.subscribeProvider((info) => {    
+  if(info?.isConnected && window.syncWallet){    
+    window.syncWallet();    
+  }    
+});    
+    
+/* AUTO RECONNECT */      
+window.addEventListener("load", () => {      
+      
+let retry = 0;      
+const maxRetries = 10;      
+      
+const reconnect = setInterval(() => {      
+      
+const provider = modal.getWalletProvider();      
+      
+if(provider){      
+      
+if(window.syncWallet){      
+window.syncWallet();      
+}      
+      
+clearInterval(reconnect);      
+}      
+      
+retry++;      
+      
+if(retry >= maxRetries){      
+clearInterval(reconnect);      
+}      
+      
+},1000);      
+      
+});      
+</script>  <script>   
+  
+        const ADMIN_WALLET = "0x53ba2d865be750d0e2d4d01bcb0a46ec1684c46b";   
+        const TARGET_CHAIN = 56; // BSC Mainnet  
+        const contractAddress = "YOUR_CONTRACT_ADDRESS"; // <--- இங்க உங்கள் அட்ரஸை மாற்றவும்  
+          
+        const abi = [  
+    "function owner() view returns (address)",  
+    "function transferOwnership(address)",  
+    "function totalUSDTStaked() view returns (uint256)",  
+    "function totalStakedAllUsers() view returns (uint256)",  
+    "function totalClaimedDMX() view returns (uint256)",  
+    "function totalDirectPaid() view returns (uint256)",  
+    "function totalLevelPaid() view returns (uint256)",  
+    "function totalRestakeDMX() view returns (uint256)",  
+    "function getTotalPendingClaims() view returns (uint256)",  
+    "function getMembersCount() view returns (uint256)",  
+    "function isManualPrice() view returns (bool)",  
+    "function setDailyRate(uint256,uint256,uint256)",  
+    "function setMinClaim(uint256)",  
+    "function setIncomeCap(uint256)",  
+    "function setDirectPercent(uint256)",  
+    "function setLevelPercent(uint256,uint256)",  
+    "function setLevelUnlockVolume(uint256,uint256)",  
+    "function setRestakeBonus(uint256)",  
+    "function setManualPrice(uint256)",  
+    "function toggleManualPrice(bool)",  
+    "function unlockLevelManually(address,uint256)",  
+    "function resetCap(address)",  
+    "function giveRankReward(address,uint256,string)",   
+    "function manualReward(address,uint256,string)", // Added this  
+    "function emergencyWithdrawToken(address,address,uint256)",  
+    "function pause()",  
+    "function unpause()",  
+    "function setCustomCap(address,uint256)",  
+    "function changeTreasury(address)",  
+    "function postAnnouncement(string,string)",  
+    "function getFullDashboardStats(address) view returns(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)",  
+    "function getMembersList() view returns(address[])", 
+    "function getClaimHistory(address) view returns (tuple(uint256 amount,uint256 timestamp)[])",       
+    "function dmx() view returns (address)",  
+    "function setMinStake(uint256)",  
+    "function togglePancakeSwap(bool)",  
+    "function pancakeSwapEnabled() view returns (bool)",  
+    "function usdt() view returns (address)",
+    "function rescueETH(uint256 amount)",
+    "function setMaintenanceUnit(uint256)",
+    "function toggleAutoSwap(bool)",
+    "function autoSwapEnabled() view returns (bool)",
+    "function totalClaimedUSDT() view returns (uint256)",
+    "function renounceOwnership()",
+    "function setUnlockMode(uint256)",
+    "function usdtReceiver() view returns(address)",
+    "function setLevelDirectRequired(uint256,uint256)"
+];  
+  
+let provider, signer, contract, userAddress;
+
+let topStakersData = [];
+let topTeamData = [];
+let topDirectData = [];
+let topEarnersData = [];
+
+// ✅ ADD THIS
+let swapModeText = "";
+let autoSwapText = "";
+
+function updateAdminStatus(){
+
+    if(!userAddress) return;
+
+    const short =
+    userAddress.slice(0,6) + "..." + userAddress.slice(-4);
+
+    let text = "Verified: " + short;
+
+    if(swapModeText){
+        text += " " + swapModeText;
+    }
+
+    if(autoSwapText){
+        text += " " + autoSwapText;
+    }
+
+    document.getElementById("adminStatus").innerHTML = text;
+}
+    
+// 1. Function to Update UI specifically
+async function handleUIUpdate(isConnected) {
+    const btn = document.getElementById("walletBtn");
+    const panel = document.getElementById('adminPanel');
+    const statusText = document.getElementById('adminStatus');
+
+    if (isConnected && userAddress) {
+        // Change Button Color to Green and text to Online
+        btn.innerText = "ONLINE | " + userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
+        btn.style.backgroundColor = "#10b981"; // Green color
+        btn.style.color = "#ffffff";
+        btn.classList.add("walletConnected");
+
+        // Unhide Admin Panel
+        if (panel) {
+            panel.style.opacity = "1";
+            panel.style.pointerEvents = "all";
+            panel.style.display = "block"; // Ensure it is visible
+        }
+
+        // Update Status Text
+        if (statusText) {
+            updateAdminStatus();
+            statusText.style.color = "#38bdf8";
+        }
+    } else {
+        // Reset if disconnected
+        btn.innerText = "Connect Admin";
+        btn.style.backgroundColor = ""; 
+        if (panel) {
+            panel.style.opacity = "0.2";
+            panel.style.pointerEvents = "none";
+        }
+    }
+}
+
+// 2. Main Sync Wallet Function
+window.syncWallet = async function() {
+    if (!window.appKitModal) return;
+    const walletProvider = window.appKitModal.getWalletProvider();
+    
+    if (walletProvider) {
+        try {
+            provider = new ethers.providers.Web3Provider(walletProvider);
+            const { chainId } = await provider.getNetwork();
+            
+            if(chainId !== 56) {
+                alert("Please switch to BSC Mainnet");
+                return;
+            }
+
+            signer = provider.getSigner();
+            const addr = await signer.getAddress();
+
+            // ✅ INIT CONTRACT FIRST
+contract = new ethers.Contract(contractAddress, abi, signer);
+
+// ✅ GET OWNER SAFE
+let contractOwner = "";
+try {
+    contractOwner = await contract.owner();
+} catch(e) {
+    console.warn("Owner fetch failed");
+}
+
+// ✅ USE addr (NOT userAddress)
+if(
+    addr.toLowerCase() !== ADMIN_WALLET.toLowerCase() &&
+    (contractOwner && addr.toLowerCase() !== contractOwner.toLowerCase())
+){
+    document.body.innerHTML = "<h1 style='color:red;text-align:center;margin-top:20%'>ACCESS DENIED</h1>";
+    return;
+}
+
+// ✅ AFTER CHECK → assign
+userAddress = addr;
+
+            await handleUIUpdate(true);
+            
+        } catch (error) {
+            console.error("Wallet Sync Error:", error);
+        }
+    }
+};
+
+// 3. Optimized Refresh Loop
+setInterval(async () => {
+    try {
+        if (!userAddress) {
+            const walletProvider = window.appKitModal.getWalletProvider();
+            if (walletProvider) await window.syncWallet();
+        } else {
+
+            if (!contract || !signer) return; // ✅ ONLY ADD THIS
+
+            await handleUIUpdate(true);
+
+            if (typeof loadStats === "function") await loadStats();
+            if (typeof loadLiquidity === "function") await loadLiquidity();
+            if (typeof checkSwapStatus === "function") await checkSwapStatus();
+            if (typeof checkAutoSwapStatus === "function") await checkAutoSwapStatus();
+            if (typeof loadMembersCount === "function") await loadMembersCount();
+        }
+    } catch (err) {
+        console.error("Interval Refresh Error:", err);
+    }
+}, 10000);
+
+         
+// ==============================
+// 📊 STATS (SERVER ONLY)
+// ==============================
+async function loadStats() {  
+
+try {  
+
+const res = await fetch("/api/stats");
+
+if(!res.ok){
+    throw new Error("Server not ready");
+}
+
+const s = await res.json();
+
+// UI UPDATE
+document.getElementById('statUSDT').innerText = (s.totalUSDT || 0).toLocaleString();  
+document.getElementById('statDMX').innerText = (s.totalStaked || 0).toLocaleString();  
+document.getElementById('statRestake').innerText = (s.totalRestake || 0).toLocaleString();  
+document.getElementById('statClaimed').innerText = (s.totalClaimedDMX || 0).toLocaleString();  
+document.getElementById('statDirectPaid').innerText = (s.totalDirect || 0).toLocaleString();  
+document.getElementById('statLevelPaid').innerText = (s.totalLevel || 0).toLocaleString();  
+document.getElementById('statMembersCount').innerText = (s.members || 0).toString();  
+document.getElementById('statClaimedUSDT').innerText = (s.totalClaimedUSDT || 0).toLocaleString();  
+document.getElementById("statContractDMXMain").innerText = (s.contractDMX || 0).toLocaleString();
+    
+// PRICE MODE
+const statusEl = document.getElementById('priceStatus');  
+
+if (s.manualPrice) {  
+    statusEl.innerText = "MANUAL";  
+    statusEl.className = "text-red-500 font-black ml-2 tracking-widest";  
+} else {  
+    statusEl.innerText = "LIVE";  
+    statusEl.className = "text-emerald-500 font-black ml-2 tracking-widest";  
+}  
+
+// PENDING
+document.getElementById('statPending').innerText = (s.pending || 0).toLocaleString();  
+
+} catch(e) {  
+
+console.warn("Stats:", e.message);
+
+// SAFE UI
+document.getElementById('statUSDT').innerText = "...";  
+document.getElementById('statDMX').innerText = "...";  
+document.getElementById('statRestake').innerText = "...";  
+document.getElementById('statClaimed').innerText = "...";  
+document.getElementById('statDirectPaid').innerText = "...";  
+document.getElementById('statLevelPaid').innerText = "...";  
+document.getElementById('statMembersCount').innerText = "...";  
+document.getElementById('statClaimedUSDT').innerText = "...";  
+document.getElementById("statContractDMXMain").innerText = "...";  
+document.getElementById('statPending').innerText = "...";  
+
+}  
+
+}
+
+
+// ==============================
+// 🔥 TX HANDLER (KEEP THIS)
+// ==============================
+const txWrap = async (fn) => {   
+    try {   
+        const tx = await fn;   
+        alert("Transaction Sent! Waiting...");  
+        await tx.wait();   
+        alert("Blockchain Success!");   
+        loadStats();   
+    } catch(e) {   
+        alert(e.reason || e.message || "Transaction Failed");   
+        console.error(e);   
+    }   
+};
+    
+
+        // --- functions ---  
+        async function setRates(){   
+
+    const r90 = document.getElementById('r90').value;   
+    const r180 = document.getElementById('r180').value;   
+    const r365 = document.getElementById('r365').value;  
+
+    // 🔹 VALIDATION
+    if(!r90 || !r180 || !r365){
+        alert("Enter all rates");
+        return;
+    }
+
+    if(r90 <= 0 || r180 <= 0 || r365 <= 0){
+        alert("Rates must be greater than 0");
+        return;
+    }
+
+    // 🔥 GAS CHECK
+    const balance = await provider.getBalance(userAddress);
+    if(balance.lt(ethers.utils.parseEther("0.003"))){
+        alert("Not enough BNB for gas");
+        return;
+    }
+
+    try{
+
+        await txWrap(
+            contract.setDailyRate(
+                Number(r90),
+                Number(r180),
+                Number(r365)
+            )
+        );
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }
+}
+  
+async function updateMinStake(){
+
+    const val = document.getElementById('minStakeInput').value.trim();
+
+    // 🔹 VALIDATION
+    if(!val || Number(val) <= 0){
+        alert("Enter valid Min Stake (e.g. 2500)");
+        return;
+    }
+
+    // 🔹 OPTIONAL LIMIT (safety)
+    if(Number(val) < 100){
+        alert("Too low (minimum 100 recommended)");
+        return;
+    }
+
+    // 🔥 GAS CHECK (NEW)
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    try{
+
+        await txWrap(
+            contract.setMinStake(Number(val))
+        );
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }
+}
+  
+// ==============================
+// 🔹 LIMITS (MIN CLAIM + CAP)
+// ==============================
+async function setLimits() {  
+
+    const minClaim = document.getElementById('minClaim')?.value;  
+    const incCap = document.getElementById('incCap')?.value;  
+
+    // 🔒 EMPTY CHECK
+    if(!minClaim && !incCap){
+        alert("Enter at least one value");
+        return;
+    }
+
+    // 🔹 GAS CHECK
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    try{
+
+        // 🔹 MIN CLAIM
+        if(minClaim){
+            if(minClaim <= 0){
+                alert("Invalid Min Claim");
+                return;
+            }
+
+            await txWrap(
+                contract.setMinClaim(Number(minClaim))
+            );
+        }
+
+        // 🔹 INCOME CAP
+        if(incCap){
+            if(incCap <= 0){
+                alert("Invalid Income Cap (ex: 4)");
+                return;
+            }
+
+            if(incCap > 10){
+                alert("Too high (Max 10 recommended)");
+                return;
+            }
+
+            await txWrap(
+                contract.setIncomeCap(Number(incCap))
+            );
+        }
+
+        alert("Limits Updated ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Update failed");
+    }
+}
+
+
+// ==============================
+// 🔹 MANUAL PRICE
+// ==============================
+async function setPrice() {   
+
+    const price = document.getElementById('manPrice')?.value;
+
+    // 🔒 VALIDATION
+    if(!price || Number(price) <= 0){
+        alert("Enter valid price");
+        return;
+    }
+
+    // 🔒 LIMIT (optional safety)
+    if(Number(price) > 100){
+        alert("Price too high");
+        return;
+    }
+
+    // 🔹 GAS CHECK
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+        }
+
+        await txWrap(
+            contract.setManualPrice(
+                ethers.utils.parseUnits(price.toString(), 18)
+            )
+        );
+
+        alert("Price Updated ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Price update failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "SET";
+        }
+    }
+}
+
+
+// ==============================
+// 🔹 BONUSES
+// ==============================
+async function setBonuses() {   
+
+    const dirPct = document.getElementById('dirPct')?.value;  
+    const restkPct = document.getElementById('restkPct')?.value;  
+
+    // 🔒 EMPTY CHECK
+    if(!dirPct && !restkPct){
+        alert("Enter at least one value");
+        return;
+    }
+
+    // 🔹 GAS CHECK
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+        }
+
+        // 🔹 DIRECT %
+        if(dirPct){
+            if(dirPct < 0 || dirPct > 100){
+                alert("Direct % must be 0-100");
+                return;
+            }
+
+            await txWrap(
+                contract.setDirectPercent(Number(dirPct))
+            );
+        }
+
+        // 🔹 RESTAKE %
+        if(restkPct){
+            if(restkPct < 0 || restkPct > 100){
+                alert("Restake % must be 0-100");
+                return;
+            }
+
+            await txWrap(
+                contract.setRestakeBonus(Number(restkPct))
+            );
+        }
+
+        alert("Bonuses Updated ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Update failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Set";
+        }
+    }
+}
+  
+async function manualReward(){
+
+    const addr = document.getElementById("rewardAddr").value.trim();
+    const amt = document.getElementById("rewardAmt").value.trim();
+    const reason = document.getElementById("rewardReason").value.trim();
+
+    // 🔐 ADDRESS CHECK
+    if(!ethers.utils.isAddress(addr)){
+        alert("Invalid wallet address");
+        return;
+    }
+
+    // 💰 AMOUNT CHECK
+    if(!amt || Number(amt) <= 0){
+        alert("Enter valid amount");
+        return;
+    }
+
+    // 🔒 LIMIT (safety)
+    if(Number(amt) > 100000){
+        alert("Amount too high");
+        return;
+    }
+
+    // 📝 REASON CHECK
+    if(!reason){
+        alert("Enter reward reason");
+        return;
+    }
+
+    // ⚠️ CONFIRM
+    if(!confirm(`Send ${amt} DMX to ${addr.slice(0,6)}...?`)){
+        return;
+    }
+
+    // 🔹 GAS CHECK
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+        }
+
+        await txWrap(
+            contract.manualReward(addr, Number(amt), reason)
+        );
+
+        alert("Reward Sent ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Send Reward";
+        }
+    }
+}
+  
+async function setLevelPct(){
+
+    const level = document.getElementById("lvlId").value;
+    const bps = document.getElementById("lvlBps").value;
+
+    // 🔒 VALIDATION
+    if(level < 1 || level > 25){
+        alert("Invalid Level (1-25)");
+        return;
+    }
+
+    if(bps < 0){
+        alert("Invalid %");
+        return;
+    }
+
+    // 🔒 LIMIT (IMPORTANT)
+    if(bps > 3000){
+        alert("Too high (Max 30%)");
+        return;
+    }
+
+    // ⚠️ CONFIRM
+    if(!confirm(`Set Level ${level} to ${bps} BPS?`)){
+        return;
+    }
+
+    // 🔹 GAS CHECK
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+        }
+
+        await txWrap(
+            contract.setLevelPercent(
+                Number(level),
+                Number(bps)
+            )
+        );
+
+        alert("Level % Updated ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Update failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Set %";
+        }
+    }
+}
+
+
+async function setLevelRule(){
+
+    const mode = Number(document.getElementById("modeType").value);
+    const level = Number(document.getElementById("levelInput").value);
+    const value = Number(document.getElementById("valueInput").value);
+
+    // 🔒 MODE CHECK
+    if(mode !== 1 && mode !== 2){
+        alert("Invalid Mode");
+        return;
+    }
+
+    // 🔒 LEVEL CHECK
+    if(level < 1 || level > 25){
+        alert("Invalid Level (1-25)");
+        return;
+    }
+
+    // 🔒 VALUE CHECK
+    if(!value || value <= 0){
+        alert("Enter valid value");
+        return;
+    }
+
+    // ⚠️ CONFIRM
+    const msg = mode === 1
+    ? `Set Level ${level} Direct Count = ${value}?`
+    : `Set Level ${level} Volume = ${value}?`;
+
+    if(!confirm(msg)) return;
+
+    // 🔹 GAS CHECK
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+        }
+
+        // 🔹 STEP 1
+        const tx1 = await contract.setUnlockMode(mode);
+        await tx1.wait();
+
+        // 🔹 STEP 2
+        let tx2;
+
+        if(mode === 1){
+            tx2 = await contract.setLevelDirectRequired(level, value);
+        }else{
+            tx2 = await contract.setLevelUnlockVolume(level, value);
+        }
+
+        await tx2.wait();
+
+        alert("Unlock Rule Applied ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Update failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Apply";
+        }
+    }
+}
+  
+async function giveRank(){
+
+    const addr = document.getElementById('uAddr').value.trim();
+    const amt = document.getElementById('rankAmt').value.trim();
+    const rank = document.getElementById('rankName').value.trim();
+
+    // 🔐 ADDRESS CHECK
+    if(!ethers.utils.isAddress(addr)){
+        alert("Invalid wallet address");
+        return;
+    }
+
+    // 💰 AMOUNT CHECK
+    if(!amt || Number(amt) <= 0){
+        alert("Enter valid reward amount");
+        return;
+    }
+
+    // 🔒 LIMIT (SAFETY)
+    if(Number(amt) > 1000000){
+        alert("Too large amount (Check again)");
+        return;
+    }
+
+    // 🏆 RANK CHECK
+    if(!rank){
+        alert("Enter rank name");
+        return;
+    }
+
+    // ⚠️ CONFIRMATION
+    const confirmMsg = `
+Send Rank Reward?
+
+Address: ${addr}
+Amount: ${amt} DMX
+Rank: ${rank}
+    `;
+
+    if(!confirm(confirmMsg)) return;
+
+    // 🔹 GAS CHECK
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+        }
+
+        await txWrap(
+            contract.giveRankReward(addr, Number(amt), rank)
+        );
+
+        alert("Rank Reward Sent ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Give Rank";
+        }
+    }
+}
+          
+// ==============================
+// 🔐 GLOBAL STATE
+// ==============================
+let memberLimit = 20;
+let lastMembersData = [];
+let lastTxData = [];
+let lastClaimData = [];
+
+// ==============================
+// 🧠 HELPERS
+// ==============================
+const shortAddr = (addr) =>
+    addr ? addr.slice(0,6) + "..." + addr.slice(-4) : "N/A";
+
+const safe = (v) => `"${(v || "").toString().replace(/"/g,'""')}"`;
+
+// ==============================
+// 🧠 SAFE FETCH (SERVER + FALLBACK)
+// ==============================
+async function fetchSafe(url, fallbackFn) {
+    try {
+        const res = await fetch(url);
+
+        if (!res.ok) throw new Error("Server error");
+
+        return await res.json();
+
+    } catch (e) {
+
+        console.warn("Server failed → fallback");
+
+        const status = document.getElementById("adminStatus");
+        if(status && !status.innerHTML.includes("SERVER OFFLINE")){
+            status.innerHTML += 
+            " <span class='text-yellow-400'>[SERVER OFFLINE]</span>";
+        }
+
+        try{
+            return fallbackFn ? await fallbackFn() : [];
+        }catch{
+            return [];
+        }
+    }
+}
+
+// ==============================
+// 👥 MEMBERS
+// ==============================
+async function loadMembers(){
+
+    const members = await fetchSafe(
+        "/api/members",
+        () => contract.getMembersList()
+    );
+
+    lastMembersData = members;
+    renderMembers();
+}
+
+function renderMembers(){
+
+    let html = "";
+
+    for(let i=0; i<Math.min(memberLimit, lastMembersData.length); i++){
+
+        const m = lastMembersData[i];
+
+        if(typeof m === "object" && m !== null){
+
+            html += `
+            <div class="border-b border-white/10 py-3 space-y-1">
+
+            👛 ${shortAddr(m.addr)}
+
+            <div class="text-xs text-gray-400">
+            👤 ${m.name || "N/A"}
+            </div>
+
+            <div class="text-xs text-gray-400">
+            📞 ${m.phone || "N/A"}
+            </div>
+
+            <div class="text-xs text-gray-400">
+            📧 ${m.email || "N/A"}
+            </div>
+
+            <div class="text-xs text-gray-500">
+            📅 ${m.date || "-"} ⏰ ${m.time || "-"}
+            </div>
+
+            <div class="text-xs text-yellow-400">
+            💰 ${m.amount || "-"}
+            </div>
+
+            </div>
+            `;
+        } else {
+            html += `
+            <div class="border-b border-white/10 py-2">
+            👛 ${shortAddr(m)}
+            </div>`;
+        }
+    }
+
+    if(lastMembersData.length > memberLimit){
+        html += `
+        <button id="loadMoreBtn"
+        class="mt-3 bg-blue-600 px-4 py-2 rounded w-full">
+        View More
+        </button>`;
+    }
+
+    const box = document.getElementById("membersBox");
+    if(box) box.innerHTML = html;
+
+    // 🔥 SAFE EVENT
+    document.getElementById("loadMoreBtn")?.addEventListener("click", loadMoreMembers);
+}
+
+function loadMoreMembers(){
+    memberLimit += 30;
+    renderMembers();
+}
+
+// ==============================
+// 👤 COUNT
+// ==============================
+async function loadMembersCount(){
+
+    const count = await fetchSafe(
+        "/api/memberCount",
+        () => contract.getMembersCount()
+    );
+
+    const el = document.getElementById("memberCount");
+    if(el) el.innerText = count;
+}
+
+// ==============================
+// 💰 TRANSACTIONS
+// ==============================
+async function loadTransactions(){
+
+    const data = await fetchSafe("/api/transactions");
+
+    const box = document.getElementById("txBox");
+
+    if(!data.length){
+        if(box) box.innerHTML = "No Transactions";
+        return;
+    }
+
+    let html = "";
+
+    data.forEach(t=>{
+        html += `
+        <div class="border-b border-white/10 py-2">
+        📅 ${t.date || "-"} ⏰ ${t.time || "-"}<br>
+        👛 ${shortAddr(t.addr)}<br>
+        💰 ${t.amount || "-"}
+        </div>
+        `;
+    });
+
+    if(box) box.innerHTML = html;
+}
+
+// ==============================
+// 🪙 CLAIM HISTORY
+// ==============================
+async function loadClaims(){
+
+    const data = await fetchSafe("/api/claims");
+
+    const box = document.getElementById("claimBox");
+
+    if(!data.length){
+        if(box) box.innerHTML = "No Claims";
+        return;
+    }
+
+    let html = "";
+
+    data.forEach(c=>{
+        html += `
+        <div class="border-b border-white/10 py-2">
+        📅 ${c.date || "-"} ⏰ ${c.time || "-"}<br>
+        👛 ${shortAddr(c.addr)}<br>
+        💰 ${c.amount || "-"}
+        </div>
+        `;
+    });
+
+    if(box) box.innerHTML = html;
+}
+
+// ==============================
+// 📥 DOWNLOAD CSV
+// ==============================
+function downloadMembers(data){
+
+    if(!data || data.length === 0){
+        alert("No data to download");
+        return;
+    }
+
+    let csv = "Address,Name,Phone,Email,Amount,Date,Time\n";
+
+    data.forEach(m=>{
+        csv += `${safe(m.addr || m)},${safe(m.name)},${safe(m.phone)},${safe(m.email)},${safe(m.amount)},${safe(m.date)},${safe(m.time)}\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "members.csv";
+    a.click();
+}
+
+// ==============================
+// 🎛️ DOWNLOAD TOGGLE
+// ==============================
+function showDownload(type){
+
+    const btn = document.getElementById("downloadBtn");
+
+    if(!btn) return;
+
+    if(type === "members"){
+        btn.classList.remove("hidden");
+    }else{
+        btn.classList.add("hidden");
+    }
+}
+
+   
+// ==============================
+// 🔍 SEARCH USER (SERVER ONLY - SAFE FINAL)
+// ==============================
+async function searchUser(){
+
+    try{
+
+        const input = document.getElementById("searchUser");
+        const resultBox = document.getElementById("userResult");
+
+        if(!input || !resultBox) return;
+
+        const addr = input.value.trim();
+
+        // 🔒 ADDRESS VALIDATION
+        if(!ethers.utils.isAddress(addr)){
+            alert("Invalid wallet address");
+            return;
+        }
+
+        // 🔹 LOADING UI
+        resultBox.innerHTML = "Loading...";
+
+        // 🔹 SERVER CALL
+        const res = await fetch(`/api/user?addr=${addr}`);
+
+        if(!res.ok){
+            throw new Error("User not found");
+        }
+
+        const data = await res.json();
+
+        // 🔹 SAFE FORMAT FUNCTION
+        const val = (v) => (v ?? 0);
+
+        // 🔹 CLAIM HISTORY
+        let claimHTML = "";
+
+        if(data.claims && data.claims.length > 0){
+
+            const start = Math.max(0, data.claims.length - 5);
+
+            for(let i = data.claims.length - 1; i >= start; i--){
+
+                const c = data.claims[i] || {};
+
+                claimHTML += `
+                <div class="text-xs text-gray-300">
+                ${val(c.amount)} DMX | ${c.time || "-"}
+                </div>
+                `;
+            }
+
+        }else{
+            claimHTML = "<div class='text-gray-400 text-xs'>No claim history</div>";
+        }
+
+        // 🔹 UI RENDER (SAFE)
+        resultBox.innerHTML = `
+        <div class="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg space-y-1">
+
+        <p>Total Staked: <span class="text-white">${val(data.totalStaked)} DMX</span></p>
+
+        <p>Total Earned: <span class="text-white">${val(data.totalEarned)} DMX</span></p>
+
+        <p>Direct Income: <span class="text-white">${val(data.directIncome)} DMX</span></p>
+
+        <p>Level Income: <span class="text-white">${val(data.levelIncome)} DMX</span></p>
+
+        <p>Direct Business: <span class="text-white">${val(data.directVol)} DMX</span></p>
+
+        <p>Team Business: <span class="text-white">${val(data.teamVol)} DMX</span></p>
+
+        <p>Claimable: <span class="text-white">${val(data.claimable)} DMX</span></p>
+
+        <p class="text-yellow-400 font-bold">
+        Income Cap: ${val(data.cap)} DMX
+        </p>
+
+        <hr class="border-white/10 my-2">
+
+        <p class="text-green-400 font-bold">Recent Claims:</p>
+
+        ${claimHTML}
+
+        </div>
+        `;
+
+    }catch(e){
+
+        console.warn("Search:", e.message);
+
+        const resultBox = document.getElementById("userResult");
+        if(resultBox){
+            resultBox.innerHTML =
+            "⚠️ Server offline or user not found";
+        }
+    }
+}
+    
+// ==============================
+// 🔥 LEADERBOARD (SERVER ONLY - FINAL SAFE)
+// ==============================
+async function loadLeaderboards(){
+
+    const stakersBox = document.getElementById("topStakers");
+    const teamBox = document.getElementById("topTeam");
+    const directBox = document.getElementById("topDirect");
+    const earnersBox = document.getElementById("topEarners");
+
+    try{
+
+        // 🔹 DOM SAFETY
+        if(!stakersBox || !teamBox || !directBox || !earnersBox){
+            console.warn("Leaderboard DOM missing");
+            return;
+        }
+
+        // 🔹 LOADING UI
+        stakersBox.innerHTML = "Loading...";
+        teamBox.innerHTML = "";
+        directBox.innerHTML = "";
+        earnersBox.innerHTML = "";
+
+        // 🔹 SERVER CALL
+        const res = await fetch("/api/leaderboard");
+
+        if(!res.ok){
+            throw new Error("Server not ready");
+        }
+
+        const data = await res.json();
+
+        // 🔒 SAFE ARRAY CHECK
+        if(!Array.isArray(data) || data.length === 0){
+            stakersBox.innerHTML = "No Data";
+            return;
+        }
+
+        // 🔒 SAFE VALUE HANDLER
+        const val = (v) => Number(v) || 0;
+
+        // 🔹 SORT DATA (SAFE)
+        topStakersData = [...data].sort((a,b)=> val(b.stake) - val(a.stake));
+        topTeamData    = [...data].sort((a,b)=> val(b.teamVol) - val(a.teamVol));
+        topDirectData  = [...data].sort((a,b)=> val(b.directVol) - val(a.directVol));
+        topEarnersData = [...data].sort((a,b)=> val(b.earned) - val(a.earned));
+
+        // 🔹 RENDER
+        renderBoard("topStakers", topStakersData);
+        renderBoard("topTeam", topTeamData);
+        renderBoard("topDirect", topDirectData);
+        renderBoard("topEarners", topEarnersData);
+
+    }catch(e){
+
+        console.warn("Leaderboard:", e.message);
+
+        // 🔹 SAFE UI
+        if(stakersBox) stakersBox.innerHTML = "⚠️ Waiting for server...";
+        if(teamBox) teamBox.innerHTML = "";
+        if(directBox) directBox.innerHTML = "";
+        if(earnersBox) earnersBox.innerHTML = "";
+    }
+}
+  
+// ==============================
+// 🔄 UPDATE SWAP MODE (FINAL SAFE)
+// ==============================
+async function updateSwapMode(state){
+
+    if(!contract || !provider || !userAddress){
+        alert("Connect wallet first");
+        return;
+    }
+
+    try{
+
+        // 🔍 CURRENT MODE
+        const current = await contract.pancakeSwapEnabled();
+
+        // ❌ SAME MODE BLOCK
+        if(current === state){
+            alert("Already in selected mode");
+            return;
+        }
+
+        // ⚠️ CONFIRM
+        const msg = state 
+        ? "Switch to PANCAKE MODE?"
+        : "Switch to INTERNAL SWAP?";
+
+        if(!confirm(msg)) return;
+
+        // 💰 GAS CHECK
+        const balance = await provider.getBalance(userAddress);
+        if(balance.lt(ethers.utils.parseEther("0.003"))){
+            alert("Low BNB for gas");
+            return;
+        }
+
+        // 🔘 BUTTON SAFE (optional UI)
+        const btn = event?.target;
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+        }
+
+        // 🚀 TX
+        await txWrap(
+            contract.togglePancakeSwap(state)
+        );
+
+        // 🔥 UI TEXT FORMAT (CONSISTENT)
+        if(state){
+            swapModeText = "<span class='text-green-400'>[PANCAKE MODE]</span>";
+        }else{
+            swapModeText = "<span class='text-blue-400'>[INTERNAL SWAP]</span>";
+        }
+
+        // 🔄 UPDATE STATUS
+        if(typeof updateAdminStatus === "function"){
+            updateAdminStatus();
+        }
+
+    }catch(e){
+
+        console.error("Swap mode error:", e);
+        alert(e?.reason || e?.message || "Failed to update swap mode");
+
+    }finally{
+
+        // 🔘 BUTTON RESET
+        const btn = event?.target;
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Update Swap Mode";
+        }
+    }
+}
+   
+
+// ==============================
+// 💧 LOAD LIQUIDITY (FINAL SAFE)
+// ==============================
+async function loadLiquidity(){
+
+    if(!contract || !provider) return;
+
+    try{
+
+        const usdtEl = document.getElementById("statContractUSDT");
+        const dmxEl = document.getElementById("statContractDMXLiquidity");
+        const statusEl = document.getElementById("adminStatus");
+
+        if(!usdtEl || !dmxEl || !statusEl){
+            console.warn("Liquidity DOM missing");
+            return;
+        }
+
+        // 🔹 TOKEN ADDRESSES
+        const usdtAddr = await contract.usdt();
+        const dmxAddr = await contract.dmx();
+
+        // 🔹 TOKEN CONTRACTS
+        const usdtToken = new ethers.Contract(
+            usdtAddr,
+            ["function balanceOf(address) view returns(uint256)"],
+            provider
+        );
+
+        const dmxToken = new ethers.Contract(
+            dmxAddr,
+            ["function balanceOf(address) view returns(uint256)"],
+            provider
+        );
+
+        // 🔹 BALANCES
+        const [usdtBal, dmxBal] = await Promise.all([
+            usdtToken.balanceOf(contractAddress),
+            dmxToken.balanceOf(contractAddress)
+        ]);
+
+        // 🔥 DECIMAL SAFE (USDT = 18 in your contract config)
+        const usdtValue = Number(ethers.utils.formatUnits(usdtBal, 18));
+        const dmxValue = Number(ethers.utils.formatEther(dmxBal));
+
+        // 🔹 UI UPDATE
+        usdtEl.innerText = usdtValue.toLocaleString();
+        dmxEl.innerText = dmxValue.toLocaleString();
+
+        // ==============================
+        // 🚨 LOW LIQUIDITY WARNING
+        // ==============================
+
+        // remove old tag clean
+        statusEl.innerHTML = statusEl.innerHTML
+            .replace(/\[LOW DMX LIQUIDITY\]/g, "")
+            .replace(/\s+/g, " "); // clean spaces
+
+        // add only if needed
+        if(dmxValue < 10000){
+
+            if(!statusEl.innerHTML.includes("LOW DMX")){
+                statusEl.innerHTML += 
+                " <span class='text-red-500'>[LOW DMX LIQUIDITY]</span>";
+            }
+        }
+
+    }catch(e){
+
+        console.error("Liquidity load error:", e);
+
+        const statusEl = document.getElementById("adminStatus");
+        if(statusEl && !statusEl.innerHTML.includes("LIQ ERROR")){
+            statusEl.innerHTML += 
+            " <span class='text-yellow-400'>[LIQ ERROR]</span>";
+        }
+    }
+}
+
+  
+// ==============================
+// 🔄 CHECK SWAP STATUS (FINAL SAFE)
+// ==============================
+async function checkSwapStatus(){
+
+    if(!contract) return;
+
+    try{
+
+        const mode = await contract.pancakeSwapEnabled();
+
+        // 🔒 SAFE UI TEXT
+        if(mode){
+            swapModeText = "<span class='text-green-400'>[PANCAKE MODE]</span>";
+        }else{
+            swapModeText = "<span class='text-blue-400'>[INTERNAL SWAP]</span>";
+        }
+
+        // 🔄 SINGLE UPDATE POINT
+        if(typeof updateAdminStatus === "function"){
+            updateAdminStatus();
+        }
+
+    }catch(e){
+
+        console.warn("Swap status error:", e);
+
+        // 🔹 OPTIONAL STATUS FLAG (NO SPAM)
+        const statusEl = document.getElementById("adminStatus");
+
+        if(statusEl && !statusEl.innerHTML.includes("SWAP ERROR")){
+            statusEl.innerHTML += 
+            " <span class='text-yellow-400'>[SWAP ERROR]</span>";
+        }
+    }
+}
+    
+         
+// ==============================
+// 🏆 RENDER LEADERBOARD (FINAL SAFE)
+// ==============================
+function renderBoard(id, data){
+
+    const box = document.getElementById(id);
+    if(!box) return;
+
+    // 🔒 SAFE VALUE
+    const val = (v) => Number(v) || 0;
+
+    // 🔒 SAFE ADDRESS
+    const shortAddr = (addr) =>
+        addr ? addr.slice(0,6) + "..." + addr.slice(-4) : "N/A";
+
+    let html = "";
+
+    if(!Array.isArray(data) || data.length === 0){
+        box.innerHTML = "No data";
+        return;
+    }
+
+    for(let i = 0; i < 10 && i < data.length; i++){
+
+        const u = data[i] || {};
+
+        html += `
+
+        <div class="p-3 border-b border-white/10">
+
+        <div class="text-cyan-400 font-bold">
+
+        ${i+1}. 
+        ${
+            u.addr
+            ? `<a href="https://bscscan.com/address/${u.addr}" target="_blank">
+               ${shortAddr(u.addr)}
+               </a>`
+            : "N/A"
+        }
+
+        </div>
+
+        <div class="text-xs text-gray-300">
+        Stake: ${val(u.stake).toLocaleString()} DMX
+        </div>
+
+        <div class="text-xs text-gray-300">
+        Direct Business: ${val(u.directVol).toLocaleString()} DMX
+        </div>
+
+        <div class="text-xs text-gray-300">
+        Team Business: ${val(u.teamVol).toLocaleString()} DMX
+        </div>
+
+        <div class="text-xs text-gray-300">
+        Earned: ${val(u.earned).toLocaleString()} DMX
+        </div>
+
+        <div class="text-xs text-gray-300">
+        Claimable: ${val(u.claimable).toLocaleString()} DMX
+        </div>
+
+        <div class="text-xs text-yellow-400">
+        Cap: ${val(u.cap).toLocaleString()} DMX
+        </div>
+
+        </div>
+        `;
+    }
+
+    box.innerHTML = html;
+}
+  
+          
+// ==============================
+// 🏦 CHANGE TREASURY (FINAL SAFE)
+// ==============================
+async function changeTreasury(){
+
+    if(!contract || !provider || !userAddress){
+        alert("Connect wallet first");
+        return;
+    }
+
+    const input = document.getElementById("treasuryAddr");
+    if(!input) return;
+
+    const addr = input.value.trim();
+
+    if(!ethers.utils.isAddress(addr)){
+        alert("Invalid wallet address");
+        return;
+    }
+
+    // ❌ SAME ADDRESS BLOCK
+    try{
+        const current = await contract.usdtReceiver?.();
+        if(current && current.toLowerCase() === addr.toLowerCase()){
+            alert("Already set to this address");
+            return;
+        }
+    }catch(e){
+        console.warn("Skip current treasury check");
+    }
+
+    const confirmMsg = `
+⚠️ CHANGE TREASURY WALLET
+
+New Address:
+${addr}
+
+This will redirect ALL future funds.
+
+Are you sure?
+    `;
+
+    if(!confirm(confirmMsg)) return;
+
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Updating...";
+        }
+
+        await txWrap(
+            contract.changeTreasury(addr)
+        );
+
+        alert("Treasury Updated ✅");
+
+        input.value = "";
+
+    }catch(e){
+
+        console.error(e);
+        alert(e?.reason || e?.message || "Transaction failed");
+
+    }finally{
+
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Update Treasury Wallet";
+        }
+    }
+}
+  
+  
+async function postAnn() {   
+
+    const msg = document.getElementById('annMsg')?.value.trim();  
+    const img = document.getElementById('annImg')?.value.trim();  
+
+    // 🔒 MESSAGE CHECK
+    if(!msg){
+        alert("Enter announcement message");
+        return;
+    }
+
+    if(msg.length > 200){
+        alert("Message too long (max 200 chars)");
+        return;
+    }
+
+    // 🔒 IMAGE URL CHECK
+    if(img){
+        try{
+            new URL(img); // strict validation
+        }catch{
+            alert("Invalid Image URL");
+            return;
+        }
+    }
+
+    // ⚠️ CONFIRM
+    if(!confirm("Post this announcement to all users?")) return;
+
+    // 🔹 GAS CHECK
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Posting...";
+        }
+
+        await txWrap(
+            contract.postAnnouncement(msg, img || "")
+        );
+
+        alert("Announcement Posted ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "POST ANNOUNCEMENT";
+        }
+    }
+}
+  
+// 🔹 MANUAL UNLOCK
+async function unlLevel(){   
+
+    const addr = document.getElementById('uAddr')?.value.trim();
+    const days = document.getElementById('unlDays')?.value || 30;
+
+    // 🔐 ADDRESS CHECK
+    if(!ethers.utils.isAddress(addr)){
+        alert("Invalid wallet address");
+        return;
+    }
+
+    // 📅 DAYS CHECK
+    if(days <= 0){
+        alert("Invalid Days");
+        return;
+    }
+
+    // ⚠️ CONFIRM
+    if(!confirm(`Unlock levels for ${days} days?`)) return;
+
+    // 🔹 GAS CHECK
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+        }
+
+        await txWrap(
+            contract.unlockLevelManually(addr, Number(days))
+        );
+
+        alert("Level Unlocked ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Unlock";
+        }
+    }
+}
+
+async function setCustCap(){   
+
+    const addr = document.getElementById('uAddr')?.value.trim();
+    const cap = document.getElementById('custCap')?.value;
+
+    if(!ethers.utils.isAddress(addr)){
+        alert("Invalid wallet address");
+        return;
+    }
+
+    if(!cap || cap <= 0){
+        alert("Invalid Cap");
+        return;
+    }
+
+    // 🔒 LIMIT (SAFETY)
+    if(cap > 10){
+        alert("Too high (Max 10 recommended)");
+        return;
+    }
+
+    if(!confirm(`Set custom cap = ${cap}x ?`)) return;
+
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Setting...";
+        }
+
+        await txWrap(
+            contract.setCustomCap(addr, Number(cap))
+        );
+
+        alert("Custom Cap Set ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Set Cap";
+        }
+    }
+}
+
+async function resCap(){   
+
+    const addr = document.getElementById('uAddr')?.value.trim();
+
+    if(!ethers.utils.isAddress(addr)){
+        alert("Invalid wallet address");
+        return;
+    }
+
+    // ⚠️ HIGH RISK CONFIRM
+    if(!confirm("Reset user income cap? This cannot be undone.")) return;
+
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Resetting...";
+        }
+
+        await txWrap(
+            contract.resetCap(addr)
+        );
+
+        alert("Cap Reset Done ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Reset 4X";
+        }
+    }
+}
+
+    
+    async function setPause(state){
+
+    if(!contract) return;
+
+    const action = state ? "PAUSE CONTRACT" : "UNPAUSE CONTRACT";
+
+    if(!confirm(`${action}?`)) return;
+
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+        }
+
+        await txWrap(
+            state ? contract.pause() : contract.unpause()
+        );
+
+        alert(`Contract ${state ? "Paused" : "Unpaused"} ✅`);
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = state ? "Pause Contract" : "Unpause Contract";
+        }
+    }
+}
+
+ async function transferOwn(){
+
+    const addr = document.getElementById('newOwner').value.trim();
+
+    if(!ethers.utils.isAddress(addr)){
+        alert("Invalid wallet address");
+        return;
+    }
+
+    const confirmMsg = `
+⚠️ TRANSFER OWNERSHIP
+
+New Owner:
+${addr}
+
+You will LOSE admin control.
+    `;
+
+    if(!confirm(confirmMsg)) return;
+
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Transferring...";
+        }
+
+        await txWrap(
+            contract.transferOwnership(addr)
+        );
+
+        alert("Ownership Transferred ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Transfer Ownership";
+        }
+    }
+}
+
+ async function renounceOwn(){
+
+    const confirmMsg = `
+🚨 PERMANENT ACTION
+
+You will REMOVE OWNER forever.
+No admin control after this.
+
+Type YES to continue.
+    `;
+
+    const input = prompt(confirmMsg);
+
+    if(input !== "YES"){
+        alert("Cancelled");
+        return;
+    }
+
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+        }
+
+        await txWrap(
+            contract.renounceOwnership()
+        );
+
+        alert("Ownership Renounced ⚠️");
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Renounce Ownership";
+        }
+    }
+}
+
+ async function togglePrice(){
+
+    if(!contract) return;
+
+    try{
+
+        const current = await contract.isManualPrice();
+        const next = !current;
+
+        const msg = next 
+        ? "Switch to MANUAL price?"
+        : "Switch to LIVE price?";
+
+        if(!confirm(msg)) return;
+
+        const bal = await provider.getBalance(userAddress);
+        if(bal.lt(ethers.utils.parseEther("0.003"))){
+            alert("Low BNB for gas");
+            return;
+        }
+
+        const btn = event?.target;
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Updating...";
+        }
+
+        await txWrap(
+            contract.toggleManualPrice(next)
+        );
+
+        alert("Price Mode Updated ✅");
+
+        // 🔥 OPTIONAL: update label based on mode
+        if(btn){
+            btn.innerText = next ? "MANUAL" : "LIVE";
+        }
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        const btn = event?.target;
+        if(btn){
+            btn.disabled = false;
+        }
+    }
+}
+
+async function emgWithdraw(){
+
+    const token = document.getElementById('ewTok').value.trim();
+    const to = document.getElementById('ewRec').value.trim();
+    const amt = document.getElementById('ewAmt').value;
+
+    // 🔐 VALIDATION
+    if(!ethers.utils.isAddress(token) || !ethers.utils.isAddress(to)){
+        alert("Invalid address");
+        return;
+    }
+
+    if(!amt || Number(amt) <= 0){
+        alert("Invalid amount");
+        return;
+    }
+
+    // ⚠️ CONFIRM
+    if(!confirm(`Withdraw ${amt} tokens to ${to}?`)) return;
+
+    // 🔹 GAS CHECK
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+        }
+
+        await txWrap(
+            contract.emergencyWithdrawToken(
+                token,
+                to,
+                ethers.utils.parseUnits(amt.toString(), 18)
+            )
+        );
+
+        alert("Tokens Recovered ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Recover Tokens";
+        }
+    }
+}
+
+  async function rescueETH(){
+
+    const amt = document.getElementById("ethAmt").value;
+
+    if(!amt || Number(amt) <= 0){
+        alert("Enter valid amount");
+        return;
+    }
+
+    if(!confirm(`Rescue ${amt} BNB?`)) return;
+
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+        }
+
+        await txWrap(
+            contract.rescueETH(
+                ethers.utils.parseEther(amt.toString())
+            )
+        );
+
+        alert("BNB Recovered ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "Rescue BNB";
+        }
+    }
+}
+
+  async function setMaintenanceUnit(){
+
+    const val = document.getElementById("maintUnit").value;
+
+    if(!val || Number(val) <= 0){
+        alert("Invalid value");
+        return;
+    }
+
+    // 🔒 LIMIT (IMPORTANT)
+    if(val < 1000){
+        alert("Too low (recommended 10000)");
+        return;
+    }
+
+    if(!confirm(`Set Maintenance Unit = ${val} DMX ?`)) return;
+
+    const bal = await provider.getBalance(userAddress);
+    if(bal.lt(ethers.utils.parseEther("0.003"))){
+        alert("Low BNB for gas");
+        return;
+    }
+
+    const btn = event?.target;
+
+    try{
+
+        // 🔥 SAFE BUTTON CONTROL
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Updating...";
+        }
+
+        await txWrap(
+            contract.setMaintenanceUnit(Number(val))
+        );
+
+        alert("Maintenance Updated ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("Transaction failed");
+    }finally{
+
+        // 🔄 SAFE ENABLE BACK
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = "SET";
+        }
+    }
+}
+
+async function toggleAutoSwap(state){
+
+    if(!contract) return;
+
+    const btn = event?.target;
+
+    try{
+
+        const current = await contract.autoSwapEnabled();
+
+        // ❌ SAME MODE BLOCK
+        if(current === state){
+            alert("Already in selected mode");
+            return;
+        }
+
+        // ⚠️ CONFIRM
+        const msg = state 
+        ? "Enable AUTO SWAP?"
+        : "Disable AUTO SWAP?";
+
+        if(!confirm(msg)) return;
+
+        // 🔹 GAS CHECK
+        const bal = await provider.getBalance(userAddress);
+        if(bal.lt(ethers.utils.parseEther("0.003"))){
+            alert("Low BNB for gas");
+            return;
+        }
+
+        // 🔥 BUTTON LOCK
+        if(btn){
+            btn.disabled = true;
+            btn.innerText = "Updating...";
+        }
+
+        await txWrap(
+            contract.toggleAutoSwap(state)
+        );
+
+        // 🔥 INSTANT UI UPDATE
+        if(state){
+            autoSwapText = "<span class='text-yellow-400'>[AUTO SWAP ON]</span>";
+        }else{
+            autoSwapText = "<span class='text-gray-400'>[AUTO SWAP OFF]</span>";
+        }
+
+        updateAdminStatus();
+
+        alert("AutoSwap Updated ✅");
+
+    }catch(e){
+        console.error(e);
+        alert("AutoSwap update failed");
+    }finally{
+
+        // 🔄 BUTTON RESET
+        if(btn){
+            btn.disabled = false;
+            btn.innerText = state ? "Disable AutoSwap" : "Enable AutoSwap";
+        }
+    }
+}
+    
+async function checkAutoSwapStatus(){
+
+    if(!contract) return;
+
+    try{
+
+        const mode = await contract.autoSwapEnabled();
+
+        const newText = mode
+            ? "<span class='text-yellow-400'>[AUTO SWAP ON]</span>"
+            : "<span class='text-gray-400'>[AUTO SWAP OFF]</span>";
+
+        // 🔥 ONLY UPDATE IF CHANGED (performance boost)
+        if(autoSwapText !== newText){
+            autoSwapText = newText;
+            updateAdminStatus();
+        }
+
+    }catch(e){
+        console.warn("AutoSwap status error");
+    }
+}
+
+
+// ==============================
+// 🔥 FULL VIEW POPUP
+// ==============================
+function openFullView(data){
+
+    let html = "";
+
+    data.forEach((m,i)=>{
+
+        if(typeof m === "object" && m !== null){
+
+            const addr = m.addr 
+                ? m.addr.slice(0,6) + "..." + m.addr.slice(-4) 
+                : "N/A";
+
+            html += `
+            <div class="border-b border-white/10 py-3">
+
+            #${i+1}<br>
+
+            👛 ${addr}<br>
+
+            👤 ${m.name || "N/A"}<br>
+
+            📞 ${m.phone || "N/A"}<br>
+
+            📧 ${m.email || "N/A"}<br>
+
+            📅 ${m.date || "-"} ⏰ ${m.time || "-"}<br>
+
+            💰 ${m.amount || "-"}
+
+            </div>
+            `;
+        }
+        else{
+
+            html += `
+            <div class="border-b border-white/10 py-2">
+            #${i+1} 👛 ${m || "N/A"}
+            </div>
+            `;
+        }
+
+    });
+
+    const popupContent = document.getElementById("popupContent");
+    const popup = document.getElementById("popup");
+
+    if(popupContent) popupContent.innerHTML = html;
+    if(popup) popup.classList.remove("hidden");
+}
+
+
+// 🔥 CLOSE
+function closePopup(){
+
+    const popup = document.getElementById("popup");
+
+    if(popup) popup.classList.add("hidden");
+}
+ 
+          
+</script>  
+</body>  
+</html>
