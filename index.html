@@ -71,6 +71,10 @@
     </style>  
 </head>  
 <body class="font-sans pb-20">  
+
+    <script>
+document.body.style.display = "none";
+    </script>
   
     <header class="p-6 border-b border-white/10 bg-[#111827]/80 sticky top-0 z-50 backdrop-blur-xl flex justify-between items-center">  
         <div>  
@@ -1018,6 +1022,9 @@ async function handleUIUpdate(isConnected) {
     const statusText = document.getElementById('adminStatus');
 
     if (isConnected && userAddress) {
+
+    document.body.style.display = "block"; // ✅ ADD THIS
+        
         // Change Button Color to Green and text to Online
         btn.innerText = "ONLINE | " + userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
         btn.style.backgroundColor = "#10b981"; // Green color
