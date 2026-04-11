@@ -1053,13 +1053,15 @@ async function handleUIUpdate(isConnected) {
 // 2. Main Sync Wallet Function
 window.syncWallet = async function() {
     if (!window.appKitModal) return;
+
     const walletProvider = window.appKitModal.getWalletProvider();
     
     if (walletProvider) {
         try {
             provider = new ethers.providers.Web3Provider(walletProvider);
+
             const { chainId } = await provider.getNetwork();
-            
+
             if(chainId !== 56) {
                 alert("Please switch to BSC Mainnet");
                 return;
@@ -1068,33 +1070,23 @@ window.syncWallet = async function() {
             signer = provider.getSigner();
             const addr = await signer.getAddress();
 
-            // ✅ INIT CONTRACT FIRST
-contract = new ethers.Contract(contractAddress, abi, signer);
+            // ✅ STRICT ADMIN CHECK (FINAL)
+            if(addr.toLowerCase() !== ADMIN_WALLET.toLowerCase()){
+                alert("ACCESS DENIED - Not Admin");
+                return;
+            }
 
-// ✅ GET OWNER SAFE
-let contractOwner = "";
-try {
-    contractOwner = await contract.owner();
-} catch(e) {
-    console.warn("Owner fetch failed");
-}
+            // ✅ INIT CONTRACT AFTER CHECK
+            contract = new ethers.Contract(contractAddress, abi, signer);
 
-// ✅ USE addr (NOT userAddress)
-if(
-    addr.toLowerCase() !== ADMIN_WALLET.toLowerCase() &&
-    (contractOwner && addr.toLowerCase() !== contractOwner.toLowerCase())
-){
-    document.body.innerHTML = "<h1 style='color:red;text-align:center;margin-top:20%'>ACCESS DENIED</h1>";
-    return;
-}
-
-// ✅ AFTER CHECK → assign
-userAddress = addr;
+            // ✅ assign AFTER security
+            userAddress = addr;
 
             await handleUIUpdate(true);
-            
+
         } catch (error) {
             console.error("Wallet Sync Error:", error);
+            alert("Wallet connection failed");
         }
     }
 };
