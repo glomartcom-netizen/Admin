@@ -934,7 +934,7 @@ clearInterval(reconnect);
   
         const ADMIN_WALLET = "0x53ba2d865be750d0e2d4d01bcb0a46ec1684c46b";   
         const TARGET_CHAIN = 56; // BSC Mainnet  
-        const contractAddress = "YOUR_CONTRACT_ADDRESS"; // <--- இங்க உங்கள் அட்ரஸை மாற்றவும்  
+        const contractAddress = "YOUR_CONTRACT_ADDRESS";  
           
         const abi = [  
     "function owner() view returns (address)",  
@@ -1024,8 +1024,6 @@ async function handleUIUpdate(isConnected) {
     const statusText = document.getElementById('adminStatus');
 
     if (isConnected && userAddress) {
-
-    document.body.style.display = "block"; // ✅ ADD THIS
         
         // Change Button Color to Green and text to Online
         btn.innerText = "ONLINE | " + userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
