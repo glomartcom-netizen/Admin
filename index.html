@@ -924,8 +924,9 @@ clearInterval(reconnect);
 },1000);      
       
 });      
-</script>  <script>   
-  
+</script>  <script>  
+    
+        const API = "http://187.77.128.251:3000";
         const ADMIN_WALLET = "0x53ba2d865be750d0e2d4d01bcb0a46ec1684c46b";   
         const TARGET_CHAIN = 56; // BSC Mainnet  
         const contractAddress = "YOUR_CONTRACT_ADDRESS";  
@@ -1122,7 +1123,7 @@ async function loadStats() {
 
 try {  
 
-const res = await fetch("/api/stats");
+const res = await fetch(API + "/api/stats");
 
 if(!res.ok){
     throw new Error("Server not ready");
@@ -1174,7 +1175,6 @@ document.getElementById('statPending').innerText = "...";
 }  
 
 }
-
 
 // ==============================
 // 🔥 TX HANDLER (KEEP THIS)
@@ -1772,7 +1772,9 @@ const safe = (v) => `"${(v || "").toString().replace(/"/g,'""')}"`;
 // ==============================
 async function fetchSafe(url, fallbackFn) {
     try {
-        const res = await fetch(url);
+
+        // ✅ ONLY HERE USE API
+        const res = await fetch(API + url);
 
         if (!res.ok) throw new Error("Server error");
 
@@ -1806,11 +1808,28 @@ async function loadMembers(){
         () => contract.getMembersList()
     );
 
+    // 🔒 SAFE ARRAY CHECK
+    if(!Array.isArray(members) || members.length === 0){
+        lastMembersData = [];
+        const box = document.getElementById("membersBox");
+        if(box) box.innerHTML = "No Members Found";
+        return;
+    }
+
     lastMembersData = members;
     renderMembers();
 }
 
 function renderMembers(){
+
+    const box = document.getElementById("membersBox");
+    if(!box) return;
+
+    // 🔒 SAFE CHECK
+    if(!Array.isArray(lastMembersData) || lastMembersData.length === 0){
+        box.innerHTML = "No Data";
+        return;
+    }
 
     let html = "";
 
@@ -1823,7 +1842,7 @@ function renderMembers(){
             html += `
             <div class="border-b border-white/10 py-3 space-y-1">
 
-            👛 ${shortAddr(m.addr)}
+            👛 ${shortAddr(m.addr || "")}
 
             <div class="text-xs text-gray-400">
             👤 ${m.name || "N/A"}
@@ -1848,13 +1867,15 @@ function renderMembers(){
             </div>
             `;
         } else {
+
             html += `
             <div class="border-b border-white/10 py-2">
-            👛 ${shortAddr(m)}
+            👛 ${shortAddr(m || "")}
             </div>`;
         }
     }
 
+    // 🔥 LOAD MORE BUTTON (SAFE)
     if(lastMembersData.length > memberLimit){
         html += `
         <button id="loadMoreBtn"
@@ -1863,11 +1884,13 @@ function renderMembers(){
         </button>`;
     }
 
-    const box = document.getElementById("membersBox");
-    if(box) box.innerHTML = html;
+    box.innerHTML = html;
 
-    // 🔥 SAFE EVENT
-    document.getElementById("loadMoreBtn")?.addEventListener("click", loadMoreMembers);
+    // 🔥 EVENT SAFE (NO DUPLICATE)
+    const btn = document.getElementById("loadMoreBtn");
+    if(btn){
+        btn.onclick = loadMoreMembers;
+    }
 }
 
 function loadMoreMembers(){
@@ -1992,7 +2015,8 @@ function showDownload(type){
 // ==============================
 // 🔍 SEARCH USER (SERVER ONLY - SAFE FINAL)
 // ==============================
-async function searchUser(){
+
+        async function searchUser(){
 
     try{
 
@@ -2012,8 +2036,8 @@ async function searchUser(){
         // 🔹 LOADING UI
         resultBox.innerHTML = "Loading...";
 
-        // 🔹 SERVER CALL
-        const res = await fetch(`/api/user?addr=${addr}`);
+        // ✅ API FIX HERE
+        const res = await fetch(`${API}/api/user?addr=${addr}`);
 
         if(!res.ok){
             throw new Error("User not found");
@@ -2021,10 +2045,8 @@ async function searchUser(){
 
         const data = await res.json();
 
-        // 🔹 SAFE FORMAT FUNCTION
         const val = (v) => (v ?? 0);
 
-        // 🔹 CLAIM HISTORY
         let claimHTML = "";
 
         if(data.claims && data.claims.length > 0){
@@ -2046,7 +2068,6 @@ async function searchUser(){
             claimHTML = "<div class='text-gray-400 text-xs'>No claim history</div>";
         }
 
-        // 🔹 UI RENDER (SAFE)
         resultBox.innerHTML = `
         <div class="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg space-y-1">
 
@@ -2113,8 +2134,8 @@ async function loadLeaderboards(){
         directBox.innerHTML = "";
         earnersBox.innerHTML = "";
 
-        // 🔹 SERVER CALL
-        const res = await fetch("/api/leaderboard");
+        // ✅ API FIX HERE
+        const res = await fetch(API + "/api/leaderboard");
 
         if(!res.ok){
             throw new Error("Server not ready");
@@ -2128,16 +2149,13 @@ async function loadLeaderboards(){
             return;
         }
 
-        // 🔒 SAFE VALUE HANDLER
         const val = (v) => Number(v) || 0;
 
-        // 🔹 SORT DATA (SAFE)
         topStakersData = [...data].sort((a,b)=> val(b.stake) - val(a.stake));
         topTeamData    = [...data].sort((a,b)=> val(b.teamVol) - val(a.teamVol));
         topDirectData  = [...data].sort((a,b)=> val(b.directVol) - val(a.directVol));
         topEarnersData = [...data].sort((a,b)=> val(b.earned) - val(a.earned));
 
-        // 🔹 RENDER
         renderBoard("topStakers", topStakersData);
         renderBoard("topTeam", topTeamData);
         renderBoard("topDirect", topDirectData);
@@ -2147,7 +2165,6 @@ async function loadLeaderboards(){
 
         console.warn("Leaderboard:", e.message);
 
-        // 🔹 SAFE UI
         if(stakersBox) stakersBox.innerHTML = "⚠️ Waiting for server...";
         if(teamBox) teamBox.innerHTML = "";
         if(directBox) directBox.innerHTML = "";
