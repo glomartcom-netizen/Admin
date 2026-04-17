@@ -1116,64 +1116,92 @@ setInterval(async () => {
 }, 10000);
 
          
+
 // ==============================
-// 📊 STATS (SERVER ONLY)
+// 📊 STATS (CONTRACT DIRECT)
 // ==============================
-async function loadStats() {  
+async function loadStats(){
 
-try {  
+    try{
 
-const res = await fetch(API + "/api/stats");
+        if(!contract) return;
 
-if(!res.ok){
-    throw new Error("Server not ready");
-}
+        // 🔥 ALL CONTRACT CALLS
+        const [
+            totalUSDT,
+            totalDMX,
+            totalClaimedDMX,
+            totalDirect,
+            totalLevel,
+            totalRestake,
+            pending,
+            members,
+            claimedUSDT,
+            isManual
+        ] = await Promise.all([
+            contract.totalUSDTStaked(),
+            contract.totalStakedAllUsers(),
+            contract.totalClaimedDMX(),
+            contract.totalDirectPaid(),
+            contract.totalLevelPaid(),
+            contract.totalRestakeDMX(),
+            contract.getTotalPendingClaims(),
+            contract.getMembersCount(),
+            contract.totalClaimedUSDT(),
+            contract.isManualPrice()
+        ]);
 
-const s = await res.json();
+        // 🔹 FORMAT
+        const f = (v) => Number(ethers.utils.formatEther(v));
 
-// UI UPDATE
-document.getElementById('statUSDT').innerText = (s.totalUSDT || 0).toLocaleString();  
-document.getElementById('statDMX').innerText = (s.totalStaked || 0).toLocaleString();  
-document.getElementById('statRestake').innerText = (s.totalRestake || 0).toLocaleString();  
-document.getElementById('statClaimed').innerText = (s.totalClaimedDMX || 0).toLocaleString();  
-document.getElementById('statDirectPaid').innerText = (s.totalDirect || 0).toLocaleString();  
-document.getElementById('statLevelPaid').innerText = (s.totalLevel || 0).toLocaleString();  
-document.getElementById('statMembersCount').innerText = (s.members || 0).toString();  
-document.getElementById('statClaimedUSDT').innerText = (s.totalClaimedUSDT || 0).toLocaleString();  
-document.getElementById("statContractDMXMain").innerText = (s.contractDMX || 0).toLocaleString();
-    
-// PRICE MODE
-const statusEl = document.getElementById('priceStatus');  
+        // 🔥 UI UPDATE
+        document.getElementById('statUSDT').innerText = f(totalUSDT).toLocaleString();
+        document.getElementById('statDMX').innerText = f(totalDMX).toLocaleString();
+        document.getElementById('statRestake').innerText = f(totalRestake).toLocaleString();
+        document.getElementById('statClaimed').innerText = f(totalClaimedDMX).toLocaleString();
+        document.getElementById('statDirectPaid').innerText = f(totalDirect).toLocaleString();
+        document.getElementById('statLevelPaid').innerText = f(totalLevel).toLocaleString();
+        document.getElementById('statMembersCount').innerText = members.toString();
+        document.getElementById('statClaimedUSDT').innerText = f(claimedUSDT).toLocaleString();
+        document.getElementById('statPending').innerText = f(pending).toLocaleString();
 
-if (s.manualPrice) {  
-    statusEl.innerText = "MANUAL";  
-    statusEl.className = "text-red-500 font-black ml-2 tracking-widest";  
-} else {  
-    statusEl.innerText = "LIVE";  
-    statusEl.className = "text-emerald-500 font-black ml-2 tracking-widest";  
-}  
+        // 🔥 DMX CONTRACT BALANCE (REAL)
+        const dmxAddr = await contract.dmx();
+        const dmxToken = new ethers.Contract(
+            dmxAddr,
+            ["function balanceOf(address) view returns(uint256)"],
+            provider
+        );
 
-// PENDING
-document.getElementById('statPending').innerText = (s.pending || 0).toLocaleString();  
+        const dmxBal = await dmxToken.balanceOf(contractAddress);
+        document.getElementById("statContractDMXMain").innerText =
+            Number(ethers.utils.formatEther(dmxBal)).toLocaleString();
 
-} catch(e) {  
+        // 🔥 PRICE MODE
+        const statusEl = document.getElementById('priceStatus');
 
-console.warn("Stats:", e.message);
+        if (isManual){
+            statusEl.innerText = "MANUAL";
+            statusEl.className = "text-red-500 font-black ml-2 tracking-widest";
+        }else{
+            statusEl.innerText = "LIVE";
+            statusEl.className = "text-emerald-500 font-black ml-2 tracking-widest";
+        }
 
-// SAFE UI
-document.getElementById('statUSDT').innerText = "...";  
-document.getElementById('statDMX').innerText = "...";  
-document.getElementById('statRestake').innerText = "...";  
-document.getElementById('statClaimed').innerText = "...";  
-document.getElementById('statDirectPaid').innerText = "...";  
-document.getElementById('statLevelPaid').innerText = "...";  
-document.getElementById('statMembersCount').innerText = "...";  
-document.getElementById('statClaimedUSDT').innerText = "...";  
-document.getElementById("statContractDMXMain").innerText = "...";  
-document.getElementById('statPending').innerText = "...";  
+    }catch(e){
 
-}  
+        console.error("Stats error:", e);
 
+        // SAFE UI
+        [
+            'statUSDT','statDMX','statRestake','statClaimed',
+            'statDirectPaid','statLevelPaid','statMembersCount',
+            'statClaimedUSDT','statContractDMXMain','statPending'
+        ].forEach(id=>{
+            const el = document.getElementById(id);
+            if(el) el.innerText = "...";
+        });
+    }
 }
 
 // ==============================
