@@ -1128,28 +1128,26 @@ async function loadStats(){
 
         // 🔥 ALL CONTRACT CALLS
         const [
-            totalUSDT,
-            totalDMX,
-            totalClaimedDMX,
-            totalDirect,
-            totalLevel,
-            totalRestake,
-            pending,
-            members,
-            claimedUSDT,
-            isManual
-        ] = await Promise.all([
-            contract.totalUSDTStaked(),
-            contract.totalStakedAllUsers(),
-            contract.totalClaimedDMX(),
-            contract.totalDirectPaid(),
-            contract.totalLevelPaid(),
-            contract.totalRestakeDMX(),
-            contract.getTotalPendingClaims(),
-            contract.getMembersCount(),
-            contract.totalClaimedUSDT(),
-            contract.isManualPrice()
-        ]);
+    totalUSDT,
+    totalDMX,
+    totalClaimedDMX,
+    totalDirect,
+    totalLevel,
+    totalRestake,
+    members,
+    claimedUSDT,
+    isManual
+] = await Promise.all([
+    contract.totalUSDTStaked(),
+    contract.totalStakedAllUsers(),
+    contract.totalClaimedDMX(),
+    contract.totalDirectPaid(),
+    contract.totalLevelPaid(),
+    contract.totalRestakeDMX(),
+    contract.getMembersCount(),
+    contract.totalClaimedUSDT(),
+    contract.isManualPrice()
+]);
 
         // 🔹 FORMAT
         const f = (v) => Number(ethers.utils.formatEther(v));
