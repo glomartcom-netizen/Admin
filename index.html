@@ -1118,7 +1118,7 @@ setInterval(async () => {
          
 
 // ==============================
-// 📊 STATS (CONTRACT DIRECT)
+// 📊 STATS (FINAL VERSION)
 // ==============================
 async function loadStats(){
 
@@ -1126,28 +1126,28 @@ async function loadStats(){
 
         if(!contract) return;
 
-        // 🔥 ALL CONTRACT CALLS
+        // 🔥 CONTRACT CALLS
         const [
-    totalUSDT,
-    totalDMX,
-    totalClaimedDMX,
-    totalDirect,
-    totalLevel,
-    totalRestake,
-    members,
-    claimedUSDT,
-    isManual
-] = await Promise.all([
-    contract.totalUSDTStaked(),
-    contract.totalStakedAllUsers(),
-    contract.totalClaimedDMX(),
-    contract.totalDirectPaid(),
-    contract.totalLevelPaid(),
-    contract.totalRestakeDMX(),
-    contract.getMembersCount(),
-    contract.totalClaimedUSDT(),
-    contract.isManualPrice()
-]);
+            totalUSDT,
+            totalDMX,
+            totalClaimedDMX,
+            totalDirect,
+            totalLevel,
+            totalRestake,
+            members,
+            claimedUSDT,
+            isManual
+        ] = await Promise.all([
+            contract.totalUSDTStaked(),
+            contract.totalStakedAllUsers(),
+            contract.totalClaimedDMX(),
+            contract.totalDirectPaid(),
+            contract.totalLevelPaid(),
+            contract.totalRestakeDMX(),
+            contract.getMembersCount(),
+            contract.totalClaimedUSDT(),
+            contract.isManualPrice()
+        ]);
 
         // 🔹 FORMAT
         const f = (v) => Number(ethers.utils.formatEther(v));
@@ -1161,9 +1161,19 @@ async function loadStats(){
         document.getElementById('statLevelPaid').innerText = f(totalLevel).toLocaleString();
         document.getElementById('statMembersCount').innerText = members.toString();
         document.getElementById('statClaimedUSDT').innerText = f(claimedUSDT).toLocaleString();
-        document.getElementById('statPending').innerText = f(pending).toLocaleString();
 
-        // 🔥 DMX CONTRACT BALANCE (REAL)
+        // 🔥 ✅ PENDING (FROM BACKEND)
+        fetch(API + "/api/totalPending")
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('statPending').innerText =
+                Number(data.total).toLocaleString();
+        })
+        .catch(() => {
+            document.getElementById('statPending').innerText = "0";
+        });
+
+        // 🔥 DMX CONTRACT BALANCE
         const dmxAddr = await contract.dmx();
         const dmxToken = new ethers.Contract(
             dmxAddr,
@@ -1190,7 +1200,6 @@ async function loadStats(){
 
         console.error("Stats error:", e);
 
-        // SAFE UI
         [
             'statUSDT','statDMX','statRestake','statClaimed',
             'statDirectPaid','statLevelPaid','statMembersCount',
